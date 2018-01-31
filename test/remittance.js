@@ -19,7 +19,7 @@ contract('Remittance', function(accounts) {
     assert.notEqual(remittance.contract.address, 0);
   });
 
-  it.skip("can always remit positive amount to non-zero shop address", function() {
+  it.skip("sender can remit positive amount to non-zero shop address", function() {
     assert.fail();
   });
   
@@ -43,11 +43,15 @@ contract('Remittance', function(accounts) {
     assert.fail();
   });
 
-  it.skip("remittance sender can always claim back", function() {
+  it.skip("sender can revoke unclaimed remittance", function() {
     assert.fail();
   });
 
-  it.skip("remittance sender cannot claim back twice", function() {
+  it.skip("sender cannot revoke claimed remittance", function() {
+    assert.fail();
+  });
+
+  it.skip("sender cannot revoke revoked remittance", function() {
     assert.fail();
   });
 

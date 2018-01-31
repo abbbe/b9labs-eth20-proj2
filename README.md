@@ -37,28 +37,51 @@ Stretch goals:
 
 - Sender/recipient opens dapp and connects it to a ethereum client.
 - Dapp displays live network status, sender address, and balance.
+- Dapp shows links to
+    - New Remittance,
+    - My Remittances,
+    - Find Claim,
+    - My Claims.
 
-## New remittance
+## New Remittance
 
-- Sender clicks on 'Send remittance'. Dapp prompts for recipient address, amount, OTP.
-- User fills in these fields and submits remittance.
-- Dapp sends remittance creation transaction to the network.
-- Plain OTP never sent to the network.
+- Dapp prompts for recipient address, amount, and OTP.
+- Sender fills in these fields and clicks 'New Remittance'.
+- Dapp sends remittance transaction.
 
-## View pending sent remittances
+See Tx Progress.
 
-- 
+## Find Claim
 
-## Claim
+- Dapp prompts for OTP.
+- Recipient fills in OTP and clicks 'Find'
+- Dapp finds the remittance, shows details (timestamp, sender, recipient, amount).
+- If recipient address matches, Dapp shows 'Claim' button.
+- Recipient clicks on 'Claim'.
+- Dapp sends claim transaction.
 
-- Sender treks to recipient and hands him over OTP.
-- Recipient clicks 'Claim'. Dapp prompts for OTP.
-- Recipient enters OTP. Dapp sends claim transaction (containing OTP hash) to the network, not disclosing OTP.
+See Tx Progress.
+
+## My Remittances
+
+- Dapp snows sender a live list of remittances (pending, mined, claimed, revoked).
+- For mined (unclaimed, unrevoked) transactions Dapp shows 'Revoke' button.
 
 ## Revoke
+- Sender clicks on 'Revoke next to an unclaimed mined remittance.
+- Dapp shows details (timestamp, recipient, amount) dialog.
+- Sender clicks 'Confirm Revoke'.
+- Dapp sends revoke transaction.
 
-- Dapp snows sender a list of issued remittances (for this sender or everybody). Including pending/mined status.
-- Sender can click on mined unclaimed remittance and revoke it.
+See Tx Progress.
 
-- Dapp show a live list unclaimed remittances (for this recipient or everybody).
-- Sender clicks on an unclaimed mined remittance to claim ether back.
+## ... Tx Progress
+
+This screen opens after transaction is created by use cases above.
+
+- Dapp shows network status and status of recently submitted transaction.
+- User can close the window and go back to home screen (and back to My Remittances / My Claims) 
+
+## My Claims
+
+- Dapp shows a live list of claims (pending, mined, failed).

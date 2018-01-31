@@ -18,4 +18,32 @@ contract('ShopRegistry', function(accounts) {
   it("should deploy", function() {
     assert.notEqual(registry.contract.address, 0);
   });
+
+  it.skip("unknown shop should be prohibited", function() {
+    assert.fail();
+  });
+  
+  it.skip("applied shop should be prohibited", function() {
+    assert.fail();
+  });
+
+  it.skip("rejected shop should be prohibited", function() {
+    assert.fail();
+  });
+
+  it.skip("accepted shop should be allowed", function() {
+    assert.fail();
+  });
+
+  it.skip("accepted then rejected shop should be prohibited", function() {
+    assert.fail();
+  });
+
+  it.skip("rejected then accepted shop should be accepted", function() {
+    assert.fail();
+  });
+
+  it.skip("kill should work", function() {
+    assert.fail();
+  });
 });

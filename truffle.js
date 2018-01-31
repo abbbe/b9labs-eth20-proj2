@@ -1,3 +1,5 @@
+require('babel-register');
+
 var web3 = require('web3');
 var net = require('net');
 var ipcPath = '/Users/abb/data/geth-net24601-ipc/geth.ipc';

@@ -35,7 +35,7 @@ window.App = {
         account = accounts[0];
         document.getElementById("account_address").innerHTML = account;
         web3.eth.getBalancePromise(account).then(balance => {
-          document.getElementById("account_balance").innerHTML = account;
+          document.getElementById("account_balance").innerHTML = balance;
         });
       } else {
         document.getElementById("account_address").innerHTML = "N/A";

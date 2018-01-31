@@ -36,7 +36,7 @@ Stretch goals:
 ## Initialization
 
 - Sender/recipient opens dapp and connects it to a ethereum client.
-- Dapp displays live network status, sender address, and balance.
+- Dapp displays live network status, account address, and balance.
 - Dapp shows links to
     - New Remittance,
     - My Remittances,

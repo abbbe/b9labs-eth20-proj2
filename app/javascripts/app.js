@@ -10,6 +10,51 @@ var Remittance = contract(remittance_artifacts);
 var remittance;
 var account;
 
+function addRemittance() {
+  var table = document.getElementById("my_remittances");
+  var tr = document.createElement("tr");
+
+  var td = document.createElement("td");
+  var txt = document.createTextNode("0xdfb73a488f8a9a45e9ac2b433e061ee60ab2fede");
+  td.appendChild(txt);
+  tr.appendChild(td);
+
+  var td = document.createElement("td");
+  var txt = document.createTextNode("0.1");
+  td.appendChild(txt);
+  tr.appendChild(td);
+
+  var td = document.createElement("td");
+  var creation = document.createElement("a");
+  creation.href = "http://etherscan.io/";
+  creation.innerHTML = "xxx";
+  td.appendChild(creation);
+  tr.appendChild(td);
+
+  var td = document.createElement("td");
+  var creation = document.createElement("a");
+  creation.href = "http://etherscan.io/";
+  creation.innerHTML = "xxx";
+  td.appendChild(creation);
+  tr.appendChild(td);
+
+  var td = document.createElement("td");
+  var creation = document.createElement("a");
+  creation.href = "http://etherscan.io/";
+  creation.innerHTML = "xxx";
+  td.appendChild(creation);
+  tr.appendChild(td);
+
+  var td = document.createElement("td");
+  var input = document.createElement("input");
+  input.type = "button";
+  input.value = "Revoke";
+  td.appendChild(input);
+  tr.appendChild(td);
+
+  table.appendChild(tr);  
+}
+
 window.App = {
   start: function () {
     var self = this;
@@ -52,12 +97,24 @@ window.App = {
       document.getElementById("owner_address").innerHTML = owner;
       self.setStatus('started');
     });
+
+    addRemittance();
   },
 
   setStatus: function (message) {
     console.log(message);
     var status = document.getElementById("status");
     status.innerHTML = message;
+  },
+
+  toggleRemittanceView: function() {
+    document.getElementById("remittance_view").hidden = false;
+    document.getElementById("claim_view").hidden = true;
+  },
+
+  toggleClaimView: function() {
+    document.getElementById("remittance_view").hidden = true;
+    document.getElementById("claim_view").hidden = false;
   }
 };
 

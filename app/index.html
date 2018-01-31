@@ -17,10 +17,55 @@
   <div>Account: <span id="account_address"/></div>
   <div>Account balance: <span id="account_balance"/></div>
 
+  <div>
+    <input type="button" onClick="App.toggleRemittanceView()" value="Remittances"/>
+    <input type="button" onClick="App.toggleClaimView()"value="Claims"/>
+  </div>
+
   <hr/>
-  
+
+  <div id="remittance_view">
+  <h3>New Remittance</h3>
+
+  <div>Recipient <input type="text" name="new_remittance_recipient"/></div>
+  <div>Amount <input type="text" name="new_remittance_amount"/></div>
+  <div>OTP <input type="text" name="new_remittance_amount"/></div>
+  <div><input type="button" value="Create Remitance"/></div>
+
   <hr/>
-  
+  <h3>My Remittances</h3>
+
+  <table id="my_remittances" cellspacing='0' width='100%'>
+      <thead>
+       <tr><th>Recipient</th> <th>Amount</th> <th>Creation</th> <th>Revocation</th> <th>Claim</th> <th></th></tr>
+      </thead>
+      <tbody>
+      </tbody>
+  </table>
+   
+  </div>
+
+  <div id="claim_view" hidden="true">
+  <h3>New Claim</h3>
+
+  <div>OTP <input type="text" name="new_remittance_amount"/></div>
+  <div><input type="button" value="Create Claim"/></div>
+
+  <hr/>
+
+  <h3>My Claims</h3>
+
+  <table id="my_claims" cellspacing='0' width='100%'>
+      <thead>
+       <tr><th>Sender</th> <th>Amount</th> <th>Creation</th> <th>Revocation</th> <th>Claim</th></tr>
+      </thead>
+      <tbody>
+      </tbody>
+  </table>
+
+  </div>
+
+  <hr/>
   <div id="status"></div>
 </body>
 </html>

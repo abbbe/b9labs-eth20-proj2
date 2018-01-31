@@ -21,6 +21,8 @@
   "homepage": "https://github.com/abbbe/b9labs-eth20-proj2#readme",
   "dependencies": {},
   "devDependencies": {
-    "truffle": "^4.0.5"
+    "create-html": "^4.1.0",
+    "truffle": "^4.0.5",
+    "webpack": "^3.10.0"
   }
 }

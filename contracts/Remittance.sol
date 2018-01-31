@@ -10,7 +10,7 @@ contract OwnableKillable {
     _;
   }
 
-  function Ownable() internal {
+  function OwnableKillable() internal {
     owner = msg.sender;
   }
 

@@ -1,0 +1,22 @@
+{
+  "name": "b9labs-eth20-proj2",
+  "version": "1.0.0",
+  "description": "B9Labs ETH-20 Project 2",
+  "main": "truffle.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "truffle test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abbbe/b9labs-eth20-proj2.git"
+  },
+  "author": "Alexandre Bezroutchko abb@gremwell.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/abbbe/b9labs-eth20-proj2/issues"
+  },
+  "homepage": "https://github.com/abbbe/b9labs-eth20-proj2#readme"
+}

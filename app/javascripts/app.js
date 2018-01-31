@@ -1,17 +1,17 @@
 import "../stylesheets/app.css";
 
-import { default as Web3} from 'web3';
+import { default as Web3 } from 'web3';
 import { default as contract } from 'truffle-contract'
+
+const Promise = require("bluebird");
 
 import remittance_artifacts from '../../build/contracts/Remittance.json'
 var Remittance = contract(remittance_artifacts);
 var remittance;
-var owner;
-var accounts;
 var account;
 
 window.App = {
-  start: function() {
+  start: function () {
     var self = this;
 
     // display network_id
@@ -19,7 +19,7 @@ window.App = {
       document.getElementById("network_id").innerHTML = networkId;
     });
 
-    // watch blocks and jupdate last_block number
+    // watch blocks and update last_block number
     web3.eth.filter("latest", function (error, blockHash) {
       if (error) {
         document.getElementById("last_block").innerHTML = "#ERROR";
@@ -29,27 +29,39 @@ window.App = {
         });
       }
     });
-    
+
+    web3.eth.getAccountsPromise().then(accounts => {
+      if (accounts.length > 0) {
+        account = accounts[0];
+        document.getElementById("account_address").innerHTML = account;
+        web3.eth.getBalancePromise(account).then(balance => {
+          document.getElementById("account_balance").innerHTML = account;
+        });
+      } else {
+        document.getElementById("account_address").innerHTML = "N/A";
+        document.getElementById("account_balance").innerHTML = "N/A";
+      }
+    });
+
     Remittance.setProvider(web3.currentProvider);
     Remittance.deployed().then(_instance => {
       remittance = _instance;
       document.getElementById("contract_address").innerHTML = remittance.contract.address;
       return remittance.owner();
-    }).then(_owner => {
-      owner = _owner;
+    }).then(owner => {
       document.getElementById("owner_address").innerHTML = owner;
       self.setStatus('started');
     });
   },
 
-  setStatus: function(message) {
+  setStatus: function (message) {
     console.log(message);
     var status = document.getElementById("status");
     status.innerHTML = message;
   }
 };
 
-window.addEventListener('load', function() {
+window.addEventListener('load', function () {
   // Checking if Web3 has been injected by the browser (Mist/MetaMask)
   if (typeof web3 !== 'undefined') {
     console.warn("Using web3 detected from external source. If you find that your accounts don't appear or you have 0 MetaCoin, ensure you've configured that source properly. If using MetaMask, see the following link. Feel free to delete this warning. :) http://truffleframework.com/tutorials/truffle-and-metamask")
@@ -60,6 +72,9 @@ window.addEventListener('load', function() {
     // fallback - use your fallback strategy (local node / hosted node + in-dapp id mgmt / fail)
     window.web3 = new Web3(new Web3.providers.HttpProvider("http://127.0.0.1:7545"));
   }
+
+  Promise.promisifyAll(web3.eth, { suffix: "Promise" });
+  Promise.promisifyAll(web3.version, { suffix: "Promise" });
 
   App.start();
 });

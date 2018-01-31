@@ -30,3 +30,35 @@ Stretch goals:
 - plug a security hole (which one?) by changing one password to the recipient's address
 - make the contract a utility that can be used by David, Emma and anybody with an address
 - make you, the owner of the contract, take a cut of the Ethers smaller than what it would cost Alice to deploy the same contract herself
+
+# Use cases
+
+## Initialization
+
+- Sender/recipient opens dapp and connects it to a ethereum client.
+- Dapp displays live network status, sender address, and balance.
+
+## New remittance
+
+- Sender clicks on 'Send remittance'. Dapp prompts for recipient address, amount, OTP.
+- User fills in these fields and submits remittance.
+- Dapp sends remittance creation transaction to the network.
+- Plain OTP never sent to the network.
+
+## View pending sent remittances
+
+- 
+
+## Claim
+
+- Sender treks to recipient and hands him over OTP.
+- Recipient clicks 'Claim'. Dapp prompts for OTP.
+- Recipient enters OTP. Dapp sends claim transaction (containing OTP hash) to the network, not disclosing OTP.
+
+## Revoke
+
+- Dapp snows sender a list of issued remittances (for this sender or everybody). Including pending/mined status.
+- Sender can click on mined unclaimed remittance and revoke it.
+
+- Dapp show a live list unclaimed remittances (for this recipient or everybody).
+- Sender clicks on an unclaimed mined remittance to claim ether back.

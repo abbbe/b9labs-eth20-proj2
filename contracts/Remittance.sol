@@ -20,59 +20,28 @@ contract OwnableKillable {
   }
 }
 
-contract ShopRegistry is OwnableKillable {
-  enum ShopState { Unknown, Applied, Rejected, Accepted }
-  mapping (address => ShopState) shops;
-
-  event LogShopApplied(address shop, string name);
-  event LogShopAccepted(address shop);
-  event LogShopRejected(address shop);
-
-  function applyShop(string name) public {
-    require(shops[msg.sender] == ShopState.Unknown);
-    shops[msg.sender] = ShopState.Applied;
-    LogShopApplied(msg.sender, name);
-  }
-
-  function rejectShop(address shop) onlyOwner public {
-    shops[shop] = ShopState.Rejected;
-    LogShopRejected(shop);
-  }
-
-  function acceptShop(address shop) onlyOwner public {
-    shops[shop] = ShopState.Accepted;
-    LogShopAccepted(shop);
-  }
-
-  modifier onlyAcceptedShop(address addr) {
-    require(shops[addr] == ShopState.Accepted);
-    _;
-  }
-}
-
-contract Remittance is ShopRegistry {
+contract Remittance is OwnableKillable {
   mapping (bytes32 => mapping (address => uint256)) remittances;
 
-  event LogRemittance(address shop, bytes32 otpHash, uint256 amount);
+  event LogRemittance(address sender, uint256 value, address shop, bytes32 otpHash);
   event LogClaim(address shop, bytes32 otp, uint256 amount);
 
   function remit(bytes32 otpHash, address shop)
-    public payable onlyAcceptedShop(shop)
+    public payable
   {
     require(msg.value > 0);
-    LogRemittance(shop, otpHash, msg.value);
+    LogRemittance(msg.sender, msg.value, shop, otpHash);
     remittances[otpHash][shop] += msg.value; 
   }
 
-  function claim(bytes32 otp)
-    public onlyAcceptedShop(msg.sender)
-  {
+  function claim(bytes32 otp) public {
     address shop = msg.sender;
-    bytes32 otpHash = keccak256(otp);
+    bytes32 otpHash = keccak256(shop, otp); // should we mix in sender address/nonce?
     uint256 amount = remittances[otpHash][shop];
     require(amount > 0);
 
+    remittances[otpHash][shop] -= amount;
     LogClaim(shop, otp, amount);
-    msg.sender.transfer(amount);
+    shop.transfer(amount);
   }
 }

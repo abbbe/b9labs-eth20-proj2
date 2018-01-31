@@ -19,27 +19,43 @@ contract('Remittance', function(accounts) {
     assert.notEqual(remittance.contract.address, 0);
   });
 
-  it.skip("cannot remit via a non-approved shop", function() {
-    assert.fail();
-  });
-
-  it.skip("can remit via an approved shop", function() {
+  it.skip("can always remit positive amount to non-zero shop address", function() {
     assert.fail();
   });
   
-  it.skip("an approved shop can claim with correct OTP", function() {
+  it.skip("shop can claim with correct OTP", function() {
     assert.fail();
   });
 
-  it.skip("an approved shop cannot claim with incorrect OTP", function() {
+  it.skip("shop cannot claim with incorrect OTP", function() {
     assert.fail();
   });
 
-  it.skip("a non-approved shop cannot claim with correct or incorrect OTP", function() {
+  it.skip("can claim correct amount after remitting twice with same OTP", function() {
     assert.fail();
   });
 
-  it.skip("remittance owner can claim after a month without OTP", function() {
+  it.skip("shop cannot claim twice", function() {
     assert.fail();
+  });
+
+  it.skip("non-shop cannot claim even with correct OTP", function() {
+    assert.fail();
+  });
+
+  it.skip("remittance sender can always claim back", function() {
+    assert.fail();
+  });
+
+  it.skip("remittance sender cannot claim back twice", function() {
+    assert.fail();
+  });
+
+  it.skip("contract owner can kill", function () {
+
+  });
+
+  it.skip("contract non-owner cannot kill", function () {
+
   });
 });

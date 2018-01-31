@@ -23,25 +23,39 @@ contract OwnableKillable {
 contract Remittance is OwnableKillable {
   mapping (bytes32 => mapping (address => uint256)) remittances;
 
-  event LogRemittance(address sender, uint256 value, address shop, bytes32 otpHash);
-  event LogClaim(address shop, bytes32 otp, uint256 amount);
+  event LogRemittance(address sender, address shop, uint256 amount, bytes32 otpHash);
+  event LogClaim(address shop, uint256 amount);
+  event LogRevoke(address sender, address shop, uint256 amount);
 
   function remit(bytes32 otpHash, address shop)
     public payable
   {
     require(msg.value > 0);
-    LogRemittance(msg.sender, msg.value, shop, otpHash);
     remittances[otpHash][shop] += msg.value; 
+    LogRemittance(msg.sender, shop, msg.value, otpHash);
   }
 
   function claim(bytes32 otp) public {
     address shop = msg.sender;
-    bytes32 otpHash = keccak256(shop, otp); // should we mix in sender address/nonce?
+    bytes32 otpHash = keccak256(shop, otp);
     uint256 amount = remittances[otpHash][shop];
     require(amount > 0);
 
     remittances[otpHash][shop] -= amount;
-    LogClaim(shop, otp, amount);
+    LogClaim(shop, amount);
+
     shop.transfer(amount);
+  }
+
+  function revoke(bytes32 otp, address shop) public {
+    bytes32 otpHash = keccak256(shop, otp);
+    uint256 amount = remittances[otpHash][shop];
+    require(amount > 0);
+    // FIXME make sure only the original sender can revoke
+
+    remittances[otpHash][shop] -= amount;
+    LogRevoke(msg.sender, shop, amount);
+    
+    msg.sender.transfer(amount);    
   }
 }

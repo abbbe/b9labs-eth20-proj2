@@ -14,6 +14,7 @@ contract('Remittance', function (accounts) {
 
   const ALICE = accounts[1];
   const CAROL = accounts[2];
+  const MALORY = accounts[3];
 
   const SECRET_HEX = web3.sha3("blah");
   const BADSECRET_HEX = web3.sha3("no-blah");
@@ -136,8 +137,10 @@ contract('Remittance', function (accounts) {
       }, 3000000);
     });
 
-    it.skip("non-recipient cannot claim even with correct OTP", function () {
-      assert.fail();
+    it("non-recipient cannot claim even with correct OTP", function () {
+      return expectedExceptionPromise(function () {
+        return remittance.claim(SECRET_HEX, { from: MALORY, gas: 3000000 })
+      }, 3000000);
     });
 
     it("recipient can claim with correct OTP", function () {

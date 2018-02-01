@@ -50,7 +50,7 @@ window.App = {
         });
 
         web3.eth.getAccounts(function (error, accounts) {
-          accounts.slice(1).forEach(acc => addOtherAccount(acc));
+          accounts.slice(1, 3).forEach(acc => addOtherAccount(acc));
         });
       } else {
         document.getElementById("account_address").innerHTML = "N/A";

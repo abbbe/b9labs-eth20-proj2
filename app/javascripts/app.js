@@ -44,7 +44,7 @@ window.App = {
     web3.eth.getAccountsPromise().then(accounts => {
       if (accounts.length > 0) {
         account = accounts[0];
-        document.getElementById("account_address").innerHTML = account;
+        document.getElementById("account_address").innerHTML = web3.toChecksumAddress(account);
         web3.eth.getBalancePromise(account).then(balance => {
           document.getElementById("account_balance").innerHTML = web3.fromWei(balance, 'ether');
         });
@@ -61,10 +61,10 @@ window.App = {
     Remittance.setProvider(web3.currentProvider);
     Remittance.deployed().then(_instance => {
       remittance = _instance;
-      document.getElementById("contract_address").innerHTML = remittance.contract.address;
+      document.getElementById("contract_address").innerHTML = web3.toChecksumAddress(remittance.contract.address);
       return remittance.owner();
     }).then(owner => {
-      document.getElementById("owner_address").innerHTML = owner;
+      document.getElementById("owner_address").innerHTML = web3.toChecksumAddress(owner);
 
       remittance.LogRemittance({ sender: account }, { fromBlock: 0 }).watch((err, event) => {
         if (err) {

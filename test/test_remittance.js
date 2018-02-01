@@ -89,12 +89,16 @@ contract('Remittance', function (accounts) {
       });
     });
 
-    it.skip("sender cannot revoke remittance twice", function () {
-      assert.fail();
+    it("sender cannot revoke remittance twice", function () {
+      return expectedExceptionPromise(function () {
+        return remittance.revoke(otpHash, { from: ALICE, gas: 3000000 })
+      }, 3000000);
     });
 
-    it.skip("recipient cannot claim revoked remittance", function () {
-      assert.fail();
+    it("recipient cannot claim revoked remittance", function () {
+      return expectedExceptionPromise(function () {
+        return remittance.claim(SECRET_HEX, { from: CAROL, gas: 3000000 })
+      }, 3000000);
     });
   });
 

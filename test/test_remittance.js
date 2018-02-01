@@ -159,8 +159,10 @@ contract('Remittance', function (accounts) {
       }, 3000000);
     });
 
-    it.skip("sender cannot revoke claimed remittance", function () {
-      assert.fail();
+    it("sender cannot revoke claimed remittance", function () {
+      return expectedExceptionPromise(function () {
+        return remittance.revoke(otp.generate(SECRET_HEX, CAROL), { from: ALICE, gas: 3000000 })
+      }, 3000000);
     });
   });
 });

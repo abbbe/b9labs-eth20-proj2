@@ -34,8 +34,10 @@ contract('Remittance', function (accounts) {
       }, 3000000);
     });
 
-    it.skip("sender cannot remit zero recipient address", function () {
-      assert.fail();
+    it("sender cannot remit to zero recipient address", function () {
+      return expectedExceptionPromise(function () {
+        return remittance.remit(otp.generate(SECRET_HEX, CAROL), 0, { from: ALICE, value: 1, gas: 3000000 })
+      }, 3000000);
     });
 
     it.skip("sender cannot reuse OTP", function () {

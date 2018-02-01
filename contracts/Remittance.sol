@@ -40,6 +40,8 @@ contract Remittance is OwnableKillable {
     // do not allow empty remittances
     require(msg.value > 0);
 
+    require(recipient != address(0));
+
     // do not allow OTP hash reuse
     require(remittances[otpHash].sender == address(0));
 

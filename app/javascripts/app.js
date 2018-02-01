@@ -17,49 +17,70 @@ function addOtherAccount(addr) {
   otherAccounts.appendChild(entry);
 }
 
-function addRemittance() {
+function handleRemittanceEvent(event) {
   var table = document.getElementById("my_remittances");
   var tr = document.createElement("tr");
+  var td, txt;
 
-  var td = document.createElement("td");
-  var txt = document.createTextNode("0xdfb73a488f8a9a45e9ac2b433e061ee60ab2fede");
+  td = document.createElement("td");
+  txt = document.createTextNode(web3.toChecksumAddress(event.args.shop));
   td.appendChild(txt);
   tr.appendChild(td);
 
-  var td = document.createElement("td");
-  var txt = document.createTextNode("0.1");
+  td = document.createElement("td");
+  txt = document.createTextNode(web3.fromWei(event.args.amount, 'ether'));
   td.appendChild(txt);
   tr.appendChild(td);
 
-  var td = document.createElement("td");
-  var creation = document.createElement("a");
-  creation.href = "http://etherscan.io/";
-  creation.innerHTML = "xxx";
-  td.appendChild(creation);
+  // created at block
+  td = document.createElement("td");
+  //creation = document.createElement("a");
+  //creation.href = "https://etherscan.io/tx/" + event.transactionHash;
+  //creation.innerHTML = event.transactionHash;
+  txt = document.createTextNode(event.blockNumber);
+  td.appendChild(txt);
   tr.appendChild(td);
 
-  var td = document.createElement("td");
-  var creation = document.createElement("a");
-  creation.href = "http://etherscan.io/";
-  creation.innerHTML = "xxx";
-  td.appendChild(creation);
+  // revoked at block
+  td = document.createElement("td");
+  txt = document.createTextNode("-");
+  txt.id = "revoke_block_" + event.transactionHash;
+  td.appendChild(txt);
   tr.appendChild(td);
 
-  var td = document.createElement("td");
-  var creation = document.createElement("a");
-  creation.href = "http://etherscan.io/";
-  creation.innerHTML = "xxx";
-  td.appendChild(creation);
+  // claimed at block
+  td = document.createElement("td");
+  txt = document.createTextNode("-");
+  txt.id = "claim_block_" + event.transactionHash;
+  td.appendChild(txt);
   tr.appendChild(td);
 
-  var td = document.createElement("td");
-  var input = document.createElement("input");
-  input.type = "button";
-  input.value = "Revoke";
-  td.appendChild(input);
+  td = document.createElement("td");
+  var btn = document.createElement("input");
+  btn.id = "revoke_" + event.transactionHash;
+  btn.type = "button";
+  btn.value = "Revoke";
+  btn.onClick = `App.revoke("${event.otpHash}")`;
+  td.appendChild(btn);
   tr.appendChild(td);
 
   table.appendChild(tr);
+}
+
+function handleRevokeEvent(event) {
+  // update revokation block number in the table and hide Revoke button
+  var txt = document.getElementById("revoked_at_" + event.transactionHash);
+  txt.innerHTML = event.blockNumber;
+  var btn = document.getElementById("revoke_btn_" + event.transactionHash);
+  btn.hidden = true;
+}
+
+function handleClaimEvent(event) {
+  // update claim block number in the table and hide Revoke button
+  var txt = document.getElementById("claimed_at_" + event.transactionHash);
+  txt.innerHTML = event.blockNumber;
+  var btn = document.getElementById("revoke_btn_" + event.transactionHash);
+  btn.hidden = true;
 }
 
 window.App = {
@@ -106,10 +127,33 @@ window.App = {
       return remittance.owner();
     }).then(owner => {
       document.getElementById("owner_address").innerHTML = owner;
+
+      remittance.LogRemittance().watch((err, event) => {
+        if (err) {
+          alert('remittance.LogRemittance.watch() has failed');
+          return;
+        }
+        handleRemittanceEvent(event);
+      });
+
+      remittance.LogRevoke().watch((err, event) => {
+        if (err) {
+          alert('remittance.LogRevoke.watch() has failed');
+          return;
+        }
+        handleRevokeEvent(event);
+      });
+
+      remittance.LogClaim().watch((err, event) => {
+        if (err) {
+          alert('remittance.LogClaim.watch() has failed');
+          return;
+        }
+        handleClaimEvent(event);
+      });
+      
       self.setStatus('started');
     });
-
-    addRemittance();
   },
 
   setStatus: function (message) {
@@ -155,6 +199,10 @@ window.App = {
     }).catch(error => {
       self.setStatus("failed to submit remit() transaction: " + error);
     });
+  },
+
+  revokeRemittance(otpHash) {
+    assert(false); // FIXME
   }
 };
 

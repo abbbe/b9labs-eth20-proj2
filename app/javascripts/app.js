@@ -151,7 +151,9 @@ window.App = {
 
     var self = this;
     remittance.remit.sendTransaction(otp, recipient, { from: account, value: amount }).then(txHash => {
-      self.setStatus("remit() transaction sent" + txHash);
+      self.setStatus("remit() transaction was mined: " + txHash);
+    }).catch(error => {
+      self.setStatus("failed to submit remit() transaction: " + error);
     });
   }
 };

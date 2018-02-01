@@ -16,9 +16,13 @@ function generateOtp(otp) {
 
 function addOtherAccount(addr) {
   var otherAccounts = document.getElementById("other_accounts");
-  var entry = document.createElement('span');
-  entry.innerHTML = " " + web3.toChecksumAddress(addr);
+  // add account switch link
+  var entry = document.createElement('a');
+  entry.href = "?account=" + addr;
+  entry.innerHTML = web3.toChecksumAddress(addr);
   otherAccounts.appendChild(entry);
+  // add space
+  otherAccounts.appendChild(document.createTextNode(" "));
 }
 
 window.App = {
@@ -41,16 +45,28 @@ window.App = {
       }
     });
 
+    // take default account from URL parameter, if present
+    var urlAccounmtParam = new URL(window.location.href).searchParams.get("account");
+    if (urlAccounmtParam) {
+      account = urlAccounmtParam;
+    }
+
     web3.eth.getAccountsPromise().then(accounts => {
       if (accounts.length > 0) {
-        account = accounts[0];
+        // if default account not set, use first account
+        if (!account) {
+          account = accounts[0];
+        }
+
+        // show account address and balance
         document.getElementById("account_address").innerHTML = web3.toChecksumAddress(account);
         web3.eth.getBalancePromise(account).then(balance => {
           document.getElementById("account_balance").innerHTML = web3.fromWei(balance, 'ether');
         });
 
+        // show couple other accounts too
         web3.eth.getAccounts(function (error, accounts) {
-          accounts.slice(1, 3).forEach(acc => addOtherAccount(acc));
+          accounts.filter((acc) => { return acc != account }).slice(0, 2).forEach(acc => addOtherAccount(acc));
         });
       } else {
         document.getElementById("account_address").innerHTML = "N/A";

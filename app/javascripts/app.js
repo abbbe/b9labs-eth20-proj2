@@ -134,7 +134,7 @@ window.App = {
     var amount = web3.toWei(amountEth, 'ether');
     var otp = document.getElementById("new_remittance_otp").value;
 
-    if (!web3.isChecksumAddress(recipient)) {
+    if (!recipient.length || !web3.isChecksumAddress(recipient)) {
       alert("Invalid recipient address (checksum is mandatory)");
       return;
     }

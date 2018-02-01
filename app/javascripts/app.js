@@ -126,6 +126,18 @@ window.App = {
   toggleClaimView: function () {
     document.getElementById("remittance_view").hidden = true;
     document.getElementById("claim_view").hidden = false;
+  },
+
+  createRemittance: function () {
+    var recipient = document.getElementById("new_remittance_recipient").value;
+    var amountEth = parseFloat(document.getElementById("new_remittance_amount").value);
+    var amount = web3.toWei(amountEth, 'ether');
+    var otp = document.getElementById("new_remittance_otp").value;
+
+    var self = this;
+    remittance.remit.sendTransaction(otp, recipient, { from: account, value: amount }).then(txHash => {
+      self.setStatus("remit() transaction sent" + txHash);
+    });
   }
 };
 

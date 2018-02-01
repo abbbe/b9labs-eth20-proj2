@@ -28,10 +28,10 @@
   <div id="remittance_view">
   <h3>New Remittance</h3>
 
-  <div>Recipient <input type="text" name="new_remittance_recipient"/></div>
-  <div>Amount <input type="text" name="new_remittance_amount"/></div>
-  <div>OTP <input type="text" name="new_remittance_amount"/></div>
-  <div><input type="button" value="Create Remitance"/></div>
+  <div>Recipient <input type="text" id="new_remittance_recipient"/></div>
+  <div>Amount <input type="text" id="new_remittance_amount"/></div>
+  <div>OTP <input type="text" id="new_remittance_otp"/></div>
+  <div><input type="button" value="Create Remitance"  onClick="App.createRemittance()"/></div>
 
   <hr/>
   <h3>My Remittances</h3>

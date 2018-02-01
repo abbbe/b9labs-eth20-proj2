@@ -21,43 +21,67 @@ contract OwnableKillable {
 }
 
 contract Remittance is OwnableKillable {
-  mapping (bytes32 => mapping (address => uint256)) remittances;
+  struct RemittanceInfo {
+    address sender;
+    address recipient;
+    uint256 amount;
+    bool revoked;
+    bool claimed;
+  }
+  mapping (bytes32 => RemittanceInfo) remittances;
 
-  event LogRemittance(address sender, address shop, uint256 amount, bytes32 otpHash);
-  event LogClaim(address shop, uint256 amount);
-  event LogRevoke(address sender, address shop, uint256 amount);
-  //event LogClaimDebug(address shop, bytes32 otp, bytes32 otpHash);
+  event LogRemittance(address indexed sender, address indexed recipient, uint256 amount, bytes32 otpHash);
+  event LogRevoke(bytes32 otpHash);
+  event LogClaim(bytes32 otpHash);
 
-  function remit(bytes32 otpHash, address shop)
+  function remit(bytes32 otpHash, address recipient)
     public payable
   {
+    // do not allow empty remittances
     require(msg.value > 0);
-    remittances[otpHash][shop] += msg.value; 
-    LogRemittance(msg.sender, shop, msg.value, otpHash);
+
+    // do not allow OTP hash reuse
+    require(remittances[otpHash].sender == address(0));
+
+    // update state, emit event
+    remittances[otpHash].sender = msg.sender;
+    remittances[otpHash].recipient = recipient;
+    remittances[otpHash].amount = msg.value;
+    LogRemittance(msg.sender, recipient, msg.value, otpHash);
   }
 
   function claim(bytes32 otp) public {
-    address shop = msg.sender;
-    // bytes32 otpHash = keccak256(shop, otp);
     bytes32 otpHash = keccak256(otp);
-    uint256 amount = remittances[otpHash][shop];
-    require(amount > 0);
 
-    remittances[otpHash][shop] -= amount;
-    //LogClaimDebug(shop, otp, otpHash);
-    LogClaim(shop, amount);
+    // only recipient can claim
+    address recipient = remittances[otpHash].recipient;
+    require(msg.sender == recipient);
 
-    shop.transfer(amount);
+    // cannot claim revoked
+    require(!remittances[otpHash].revoked);
+    // cannot claim claimed
+    require(!remittances[otpHash].claimed);
+
+    // update state, emit event, transfer
+    remittances[otpHash].claimed = true;
+    uint256 amount = remittances[otpHash].amount;
+    LogClaim(otpHash);
+    recipient.transfer(amount);
   }
 
-  function revoke(bytes32 otpHash, address shop) public {
-    uint256 amount = remittances[otpHash][shop];
-    require(amount > 0);
-    // FIXME make sure only the original sender can revoke
+  function revoke(bytes32 otpHash) public {
+    // only sender can revoke
+    require(msg.sender == remittances[otpHash].sender);
 
-    remittances[otpHash][shop] -= amount;
-    LogRevoke(msg.sender, shop, amount);
-    
+    // cannot claim revoked
+    require(!remittances[otpHash].revoked);
+    // cannot claim claimed
+    require(!remittances[otpHash].claimed);
+
+    // update state, emit event, transfer
+    remittances[otpHash].revoked = true;
+    uint256 amount = remittances[otpHash].amount;
+    LogRevoke(otpHash);
     msg.sender.transfer(amount);    
   }
 }

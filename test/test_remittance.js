@@ -22,24 +22,33 @@ contract('Remittance', function (accounts) {
     var remittance;
 
     beforeEach("deploy", function () {
-      return Remittance.deployed().then(instance => {
+      return Remittance.new().then(instance => {
         remittance = instance;
       })
     });
 
     it.skip("sender cannot remit zero amount", function () {
+      assert.fail();
     });
 
-    it.skip("sender cannot remit zero shop address", function () {
+    it.skip("sender cannot remit zero recipient address", function () {
+      assert.fail();
+    });
+
+    it.skip("sender cannot reuse OTP", function () {
+      assert.fail();
     });
 
     it.skip("contract owner can kill", function () {
+      assert.fail();
     });
 
     it.skip("cannot send funds to killed contract", function () {
+      assert.fail();
     });
 
     it.skip("contract non-owner cannot kill", function () {
+      assert.fail();
     });
 
     it.skip("can claim correct amount after remitting twice with same OTP", function () {
@@ -51,12 +60,18 @@ contract('Remittance', function (accounts) {
     });
   });
 
-  describe("revokation", function () {
+  /*
+   * sender remits successfully
+   * sender revokes successfully
+   * sendor cannot revoke second time
+   * recipient cannot claim
+   */
+  describe("revoke:", function () {
     var remittance;
     var otpHash = otp.generate(SECRET_HEX, CAROL);
 
     before("deploy+remit", function () {
-      return Remittance.deployed().then(instance => {
+      return Remittance.new().then(instance => {
         remittance = instance;
 
         return remittance.remit(otpHash, CAROL, { from: ALICE, value: TEST_AMOUNT })
@@ -67,7 +82,7 @@ contract('Remittance', function (accounts) {
     });
 
     it("sender can revoke an unclaimed remittance", function () {
-      return remittance.revoke(otpHash, CAROL).then(txObj2 => {
+      return remittance.revoke(otpHash, { from: ALICE }).then(txObj2 => {
         // FIXME check logs
         assert.equal(txObj2.receipt.status, 1, 'revoke failed');
       });
@@ -77,17 +92,26 @@ contract('Remittance', function (accounts) {
       assert.fail();
     });
 
-    it.skip("shop cannot claim revoked remittance", function () {
+    it.skip("recipient cannot claim revoked remittance", function () {
       assert.fail();
     });
   });
 
-  describe("success story", function () {
+  /*
+   * sender remits successfully
+   * recipient cannot claim with incorrect OTP
+   * non-recipient cannot claim even with correct OTP
+   * recipient claims successfully with correct OTP
+   * recipient cannot claim second time
+   * sender cannot revoke
+   */
+
+  describe("claim:", function () {
     var remittance;
     var testAccounts;
 
     before("deploy", function () {
-      return Remittance.deployed().then(instance => {
+      return Remittance.new().then(instance => {
         remittance = instance;
         assert.notEqual(remittance.contract.address, 0);
 
@@ -95,7 +119,7 @@ contract('Remittance', function (accounts) {
       })
     });
 
-    it("sender can remit positive amount to non-zero shop address", function () {
+    it("sender can remit positive amount to non-zero recipient address", function () {
       var otpValue = otp.generate(SECRET_HEX, CAROL);
       return measure.measureTx(testAccounts,
         remittance.remit(otpValue, CAROL, { from: ALICE, value: TEST_AMOUNT }))
@@ -106,17 +130,17 @@ contract('Remittance', function (accounts) {
         });
     });
 
-    it("shop cannot claim with an incorrect OTP", function () {
+    it("recipient cannot claim with an incorrect OTP", function () {
       return expectedExceptionPromise(function () {
         return remittance.claim(BADSECRET_HEX, { from: CAROL, gas: 3000000 })
       }, 3000000);
     });
 
-    it.skip("non-shop cannot claim even with correct OTP", function () {
+    it.skip("non-recipient cannot claim even with correct OTP", function () {
       assert.fail();
     });
 
-    it("shop can claim with correct OTP", function () {
+    it("recipient can claim with correct OTP", function () {
       return measure.measureTx(testAccounts,
         remittance.claim(SECRET_HEX, { from: CAROL }))
         .then(m => {
@@ -126,7 +150,7 @@ contract('Remittance', function (accounts) {
         });
     });
 
-    it.skip("shop cannot claim twice", function () {
+    it.skip("recipient cannot claim twice", function () {
       assert.fail();
     });
 

@@ -48,7 +48,7 @@ contract('Remittance', function (accounts) {
 
     it.skip("sender cannot revoke revoked remittance", function () {
       assert.fail();
-    });    
+    });
   });
 
   describe("main use case", function () {
@@ -63,15 +63,14 @@ contract('Remittance', function (accounts) {
 
         testAccounts = [remittance.contract.address, ALICE, CAROL];
 
-        var shopNotp = web3.toAscii(CAROL) + web3.toAscii(OTP_HEX);
-        otpHash = web3.sha3(shopNotp);
+        // otpHash = web3.sha3(web3.toAscii(CAROL) + web3.toAscii(OTP_HEX));
+        otpHash = web3.sha3(OTP_HEX, { encoding: 'hex' });
       })
     });
 
     it("sender can remit positive amount to non-zero shop address", function () {
       return measure.measureTx(testAccounts,
-        // FIXME remittance.remit(otpHash, CAROL, { from: ALICE, value: TEST_AMOUNT }))
-        remittance.remit(OTP_HEX, CAROL, { from: ALICE, value: TEST_AMOUNT }))
+        remittance.remit(otpHash, CAROL, { from: ALICE, value: TEST_AMOUNT }))
         .then(m => {
           measure.assertStrs10Equal(m.diff, [TEST_AMOUNT, -m.cost - TEST_AMOUNT, 0]);
           // FIXME: check events
@@ -87,9 +86,6 @@ contract('Remittance', function (accounts) {
     });
 
     it("shop can claim with correct OTP", function () {
-      console.log("shop:", CAROL);
-      console.log("opt:", OTP_HEX);
-      console.log("otpHash:", otpHash);
       return measure.measureTx(testAccounts,
         remittance.claim(OTP_HEX, { from: CAROL }))
         .then(m => {

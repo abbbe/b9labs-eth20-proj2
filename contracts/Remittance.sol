@@ -38,7 +38,8 @@ contract Remittance is OwnableKillable {
 
   function claim(bytes32 otp) public {
     address shop = msg.sender;
-    bytes32 otpHash = otp; // FIXME keccak256(shop, otp);
+    // bytes32 otpHash = keccak256(shop, otp);
+    bytes32 otpHash = keccak256(otp);
     uint256 amount = remittances[otpHash][shop];
     require(amount > 0);
 

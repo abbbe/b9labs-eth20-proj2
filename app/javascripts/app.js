@@ -13,7 +13,7 @@ var account;
 function addOtherAccount(addr) {
   var otherAccounts = document.getElementById("other_accounts");
   var entry = document.createElement('span');
-  entry.innerHTML = " " + addr;
+  entry.innerHTML = " " + web3.toChecksumAddress(addr);
   otherAccounts.appendChild(entry);
 }
 
@@ -133,6 +133,21 @@ window.App = {
     var amountEth = parseFloat(document.getElementById("new_remittance_amount").value);
     var amount = web3.toWei(amountEth, 'ether');
     var otp = document.getElementById("new_remittance_otp").value;
+
+    if (!web3.isChecksumAddress(recipient)) {
+      alert("Invalid recipient address (checksum is mandatory)");
+      return;
+    }
+
+    if (isNaN(amountEth)) {
+      alert("Invalid amount");
+      return;
+    }
+
+    if (otp.length < 4) {
+      alert("Secret must be at least 4 characters long");
+      return;
+    }
 
     var self = this;
     remittance.remit.sendTransaction(otp, recipient, { from: account, value: amount }).then(txHash => {

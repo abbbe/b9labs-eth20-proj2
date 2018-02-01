@@ -26,6 +26,7 @@ contract Remittance is OwnableKillable {
   event LogRemittance(address sender, address shop, uint256 amount, bytes32 otpHash);
   event LogClaim(address shop, uint256 amount);
   event LogRevoke(address sender, address shop, uint256 amount);
+  //event LogClaimDebug(address shop, bytes32 otp, bytes32 otpHash);
 
   function remit(bytes32 otpHash, address shop)
     public payable
@@ -37,11 +38,12 @@ contract Remittance is OwnableKillable {
 
   function claim(bytes32 otp) public {
     address shop = msg.sender;
-    bytes32 otpHash = keccak256(shop, otp);
+    bytes32 otpHash = otp; // FIXME keccak256(shop, otp);
     uint256 amount = remittances[otpHash][shop];
     require(amount > 0);
 
     remittances[otpHash][shop] -= amount;
+    //LogClaimDebug(shop, otp, otpHash);
     LogClaim(shop, amount);
 
     shop.transfer(amount);

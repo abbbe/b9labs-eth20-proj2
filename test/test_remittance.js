@@ -40,8 +40,12 @@ contract('Remittance', function (accounts) {
       }, 3000000);
     });
 
-    it.skip("sender cannot reuse OTP", function () {
-      assert.fail();
+    it("sender cannot reuse OTP", function () {
+      return remittance.remit(otp.generate(SECRET_HEX, CAROL), CAROL, { from: ALICE, value: 1 })
+        .then(txObj =>
+          expectedExceptionPromise(function () {
+            return remittance.remit(otp.generate(SECRET_HEX, CAROL), CAROL, { from: ALICE, value: 1, gas: 3000000 })
+          }, 3000000));
     });
 
     it.skip("contract owner can kill", function () {

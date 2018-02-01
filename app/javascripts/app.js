@@ -23,7 +23,7 @@ function handleRemittanceEvent(event) {
   var td, txt;
 
   td = document.createElement("td");
-  txt = document.createTextNode(web3.toChecksumAddress(event.args.shop));
+  txt = document.createTextNode(web3.toChecksumAddress(event.args.recipient));
   td.appendChild(txt);
   tr.appendChild(td);
 
@@ -44,23 +44,23 @@ function handleRemittanceEvent(event) {
   // revoked at block
   td = document.createElement("td");
   txt = document.createTextNode("-");
-  txt.id = "revoke_block_" + event.transactionHash;
+  txt.id = "revoke_block_" + event.args.otpHash;
   td.appendChild(txt);
   tr.appendChild(td);
 
   // claimed at block
   td = document.createElement("td");
   txt = document.createTextNode("-");
-  txt.id = "claim_block_" + event.transactionHash;
+  txt.id = "claim_block_" + event.args.otpHash;
   td.appendChild(txt);
   tr.appendChild(td);
 
   td = document.createElement("td");
   var btn = document.createElement("input");
-  btn.id = "revoke_" + event.transactionHash;
+  btn.id = "revoke_" + event.args.otpHash;
   btn.type = "button";
   btn.value = "Revoke";
-  btn.onClick = `App.revoke("${event.otpHash}")`;
+  btn.onclick = revokeRemittance(otpHash);
   td.appendChild(btn);
   tr.appendChild(td);
 
@@ -69,17 +69,17 @@ function handleRemittanceEvent(event) {
 
 function handleRevokeEvent(event) {
   // update revokation block number in the table and hide Revoke button
-  var txt = document.getElementById("revoked_at_" + event.transactionHash);
+  var txt = document.getElementById("revoked_at_" + event.args.otpHash);
   txt.innerHTML = event.blockNumber;
-  var btn = document.getElementById("revoke_btn_" + event.transactionHash);
+  var btn = document.getElementById("revoke_btn_" + event.args.otpHash);
   btn.hidden = true;
 }
 
 function handleClaimEvent(event) {
   // update claim block number in the table and hide Revoke button
-  var txt = document.getElementById("claimed_at_" + event.transactionHash);
+  var txt = document.getElementById("claimed_at_" + event.args.otpHash);
   txt.innerHTML = event.blockNumber;
-  var btn = document.getElementById("revoke_btn_" + event.transactionHash);
+  var btn = document.getElementById("revoke_btn_" + event.args.otpHash);
   btn.hidden = true;
 }
 
@@ -202,7 +202,7 @@ window.App = {
   },
 
   revokeRemittance(otpHash) {
-    assert(false); // FIXME
+    console.log("boom");
   }
 };
 

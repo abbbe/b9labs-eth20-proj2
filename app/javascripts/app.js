@@ -167,7 +167,7 @@ window.App = {
 
     // otpHash
     td = document.createElement("td");
-    txt = document.createTextNode(event.args.otpHash);
+    txt = document.createTextNode(event.args.otpHash.slice(2, 10));
     td.appendChild(txt);
     tr.appendChild(td);
 

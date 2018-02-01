@@ -2,6 +2,7 @@ pragma solidity ^0.4.18;
 
 contract OwnableKillable {
   address public owner;
+  bool public killed;
 
   event LogKilled();
 
@@ -10,13 +11,22 @@ contract OwnableKillable {
     _;
   }
 
+  modifier notKilled() {
+    require(!killed);
+    _;
+  }
+
   function OwnableKillable() internal {
     owner = msg.sender;
   }
 
-  function kill() public onlyOwner {
+  function kill()
+    onlyOwner()
+    notKilled()
+    public
+  {
     LogKilled();
-    selfdestruct(owner);
+    killed = true;
   }
 }
 
@@ -35,6 +45,7 @@ contract Remittance is OwnableKillable {
   event LogClaim(bytes32 otpHash);
 
   function remit(bytes32 otpHash, address recipient)
+    notKilled()
     public payable
   {
     // do not allow empty remittances
@@ -52,7 +63,10 @@ contract Remittance is OwnableKillable {
     LogRemittance(msg.sender, recipient, msg.value, otpHash);
   }
 
-  function claim(bytes32 otp) public {
+  function claim(bytes32 otp)
+    notKilled()
+    public
+  {
     bytes32 otpHash = keccak256(otp);
 
     // only recipient can claim
@@ -71,7 +85,10 @@ contract Remittance is OwnableKillable {
     recipient.transfer(amount);
   }
 
-  function revoke(bytes32 otpHash) public {
+  function revoke(bytes32 otpHash)
+    notKilled()
+    public
+  {
     // only sender can revoke
     require(msg.sender == remittances[otpHash].sender);
 

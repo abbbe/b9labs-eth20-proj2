@@ -19,7 +19,7 @@ contract('Remittance', function (accounts) {
   const SECRET_HEX = web3.sha3("blah");
   const BADSECRET_HEX = web3.sha3("no-blah");
 
-  describe("deployed", function () {
+  describe("deployed:", function () {
     var remittance;
 
     beforeEach("deploy", function () {
@@ -48,16 +48,35 @@ contract('Remittance', function (accounts) {
           }, 3000000));
     });
 
-    it.skip("contract owner can kill", function () {
-      assert.fail();
+    it("cannot just send funds to the contract", function () {
+      return remittance.sendTransaction({ value: 1 }).then(
+        () => assert.fail('should not have worked'),
+        e => assert.isAtLeast(e.message.indexOf("VM Exception while processing transaction: revert"), 0)
+      );
     });
 
-    it.skip("cannot send funds to killed contract", function () {
-      assert.fail();
+    it("contract owner can kill", function () {
+      return remittance.kill().then(
+        txObj => assert.equal(txObj.receipt.status, 1, 'kill failed')
+      );
     });
 
-    it.skip("contract non-owner cannot kill", function () {
-      assert.fail();
+    it("cannot kill killed contract", function () {
+      return remittance.kill().then(
+        txObj1 => {
+          assert.equal(txObj1.receipt.status, 1, 'first kill failed');
+          return remittance.kill().then(
+            txObj => assert.equal(txObj.receipt.status, 0, 'should not have worked'),
+            e => assert.isAtLeast(e.message.indexOf("Exception while processing transaction: revert"), 0)
+          )
+        });
+    });
+
+    it("contract non-owner cannot kill", function () {
+      return remittance.kill({ from: ALICE }).then(
+        txObj => assert.equal(txObj.receipt.status, 0, 'should not have worked'),
+        e => assert.isAtLeast(e.message.indexOf("Exception while processing transaction: revert"), 0)
+      );
     });
 
     it.skip("can claim correct amounts from different senders remiting with same OTP", function () {

@@ -18,7 +18,9 @@ contract('Remittance', function (accounts) {
   const SECRET_HEX = web3.sha3("blah");
   const BADSECRET_HEX = web3.sha3("no-blah");
 
-  describe("mmm... tests...", function () {
+  describe("deployed", function () {
+    var remittance;
+
     beforeEach("deploy", function () {
       return Remittance.deployed().then(instance => {
         remittance = instance;
@@ -47,17 +49,40 @@ contract('Remittance', function (accounts) {
     it.skip("can claim correct amounts from different senders remiting with same OTP", function () {
       assert.fail();
     });
+  });
 
-    it.skip("sender can revoke unclaimed remittance", function () {
+  describe("revokation", function () {
+    var remittance;
+    var otpHash = otp.generate(SECRET_HEX, CAROL);
+
+    before("deploy+remit", function () {
+      return Remittance.deployed().then(instance => {
+        remittance = instance;
+
+        return remittance.remit(otpHash, CAROL, { from: ALICE, value: TEST_AMOUNT })
+          .then(txObj1 => {
+            assert.equal(txObj1.receipt.status, 1, 'remit failed');
+          })
+      })
+    });
+
+    it("sender can revoke an unclaimed remittance", function () {
+      return remittance.revoke(otpHash, CAROL).then(txObj2 => {
+        // FIXME check logs
+        assert.equal(txObj2.receipt.status, 1, 'revoke failed');
+      });
+    });
+
+    it.skip("sender cannot revoke remittance twice", function () {
       assert.fail();
     });
 
-    it.skip("sender cannot revoke revoked remittance", function () {
+    it.skip("shop cannot claim revoked remittance", function () {
       assert.fail();
     });
   });
 
-  describe("main use case", function () {
+  describe("success story", function () {
     var remittance;
     var testAccounts;
 

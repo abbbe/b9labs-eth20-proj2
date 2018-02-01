@@ -50,8 +50,7 @@ contract Remittance is OwnableKillable {
     shop.transfer(amount);
   }
 
-  function revoke(bytes32 otp, address shop) public {
-    bytes32 otpHash = keccak256(shop, otp);
+  function revoke(bytes32 otpHash, address shop) public {
     uint256 amount = remittances[otpHash][shop];
     require(amount > 0);
     // FIXME make sure only the original sender can revoke

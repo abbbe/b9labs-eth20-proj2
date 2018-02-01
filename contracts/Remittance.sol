@@ -41,8 +41,8 @@ contract Remittance is OwnableKillable {
   mapping (bytes32 => RemittanceInfo) remittances;
 
   event LogRemittance(address indexed sender, address indexed recipient, uint256 amount, bytes32 otpHash);
-  event LogRevoke(bytes32 otpHash);
-  event LogClaim(bytes32 otpHash);
+  event LogRevoke(address indexed sender, address indexed recipient, uint256 amount, bytes32 otpHash);
+  event LogClaim(address indexed sender, address indexed recipient, uint256 amount, bytes32 otpHash);
 
   function remit(bytes32 otpHash, address recipient)
     notKilled()
@@ -81,7 +81,7 @@ contract Remittance is OwnableKillable {
     // update state, emit event, transfer
     remittances[otpHash].claimed = true;
     uint256 amount = remittances[otpHash].amount;
-    LogClaim(otpHash);
+    LogClaim(remittances[otpHash].sender, recipient, amount, otpHash);
     recipient.transfer(amount);
   }
 
@@ -100,7 +100,7 @@ contract Remittance is OwnableKillable {
     // update state, emit event, transfer
     remittances[otpHash].revoked = true;
     uint256 amount = remittances[otpHash].amount;
-    LogRevoke(otpHash);
+    LogRevoke(msg.sender, remittances[otpHash].recipient, amount, otpHash);
     msg.sender.transfer(amount);    
   }
 }

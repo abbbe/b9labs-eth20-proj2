@@ -10,6 +10,10 @@ var Remittance = contract(remittance_artifacts);
 var remittance;
 var account;
 
+function generateOtp(otp) {
+  return web3.sha3(otp);
+}
+
 function addOtherAccount(addr) {
   var otherAccounts = document.getElementById("other_accounts");
   var entry = document.createElement('span');
@@ -42,7 +46,7 @@ window.App = {
         account = accounts[0];
         document.getElementById("account_address").innerHTML = account;
         web3.eth.getBalancePromise(account).then(balance => {
-          document.getElementById("account_balance").innerHTML = balance;
+          document.getElementById("account_balance").innerHTML = web3.fromWei(balance, 'ether');
         });
 
         web3.eth.getAccounts(function (error, accounts) {
@@ -62,28 +66,28 @@ window.App = {
     }).then(owner => {
       document.getElementById("owner_address").innerHTML = owner;
 
-      remittance.LogRemittance().watch((err, event) => {
+      remittance.LogRemittance({ sender: account }, { fromBlock: 0 }).watch((err, event) => {
         if (err) {
           alert('remittance.LogRemittance.watch() has failed');
           return;
         }
-        self.handleRemittanceEvent(event);
+        self.handleEvent(event);
       });
 
-      remittance.LogRevoke().watch((err, event) => {
+      remittance.LogRevoke({ sender: account }, { fromBlock: 0 }).watch((err, event) => {
         if (err) {
           alert('remittance.LogRevoke.watch() has failed');
           return;
         }
-        self.handleRevokeEvent(event);
+        self.handleEvent(event);
       });
 
-      remittance.LogClaim().watch((err, event) => {
+      remittance.LogClaim({ sender: account }, { fromBlock: 0 }).watch((err, event) => {
         if (err) {
           alert('remittance.LogClaim.watch() has failed');
           return;
         }
-        self.handleClaimEvent(event);
+        self.handleEvent(event);
       });
 
       self.setStatus('started');
@@ -111,6 +115,7 @@ window.App = {
     var amountEth = parseFloat(document.getElementById("new_remittance_amount").value);
     var amount = web3.toWei(amountEth, 'ether');
     var otp = document.getElementById("new_remittance_otp").value;
+    var otpHash = generateOtp(otp);
 
     if (!recipient.length || !web3.isChecksumAddress(recipient)) {
       alert("Invalid recipient address (checksum is mandatory)");
@@ -128,81 +133,100 @@ window.App = {
     }
 
     var self = this;
-    remittance.remit.sendTransaction(otp, recipient, { from: account, value: amount }).then(txHash => {
+    remittance.remit.sendTransaction(otpHash, recipient, { from: account, value: amount }).then(txHash => {
       self.setStatus("remit() transaction was mined: " + txHash);
     }).catch(error => {
       self.setStatus("failed to submit remit() transaction: " + error);
     });
   },
 
-  revokeRemittance: function(otpHash) {
-    console.log("boom");
+  revokeRemittance: function (otpHash) {
+    var self = this;
+    remittance.revoke.sendTransaction(otpHash, { from: account }).then(txHash => {
+      self.setStatus("revoke() transaction was mined: " + txHash);
+    }).catch(error => {
+      self.setStatus("failed to submit revoke() transaction: " + error);
+    });
   },
 
-  handleRemittanceEvent: function (event) {
-    var table = document.getElementById("my_remittances");
+  addRemittanceRecord: function (event) {
     var tr = document.createElement("tr");
     var td, txt;
 
+    // recipient
     td = document.createElement("td");
     txt = document.createTextNode(web3.toChecksumAddress(event.args.recipient));
     td.appendChild(txt);
     tr.appendChild(td);
 
+    // amopunt
     td = document.createElement("td");
     txt = document.createTextNode(web3.fromWei(event.args.amount, 'ether'));
     td.appendChild(txt);
     tr.appendChild(td);
 
+    // otpHash
+    td = document.createElement("td");
+    txt = document.createTextNode(event.args.otpHash);
+    td.appendChild(txt);
+    tr.appendChild(td);
+
     // created at block
     td = document.createElement("td");
-    //creation = document.createElement("a");
-    //creation.href = "https://etherscan.io/tx/" + event.transactionHash;
-    //creation.innerHTML = event.transactionHash;
-    txt = document.createTextNode(event.blockNumber);
-    td.appendChild(txt);
+    td.id = "created_at_block_" + event.args.otpHash;
     tr.appendChild(td);
 
     // revoked at block
     td = document.createElement("td");
-    txt = document.createTextNode("-");
-    txt.id = "revoke_block_" + event.args.otpHash;
-    td.appendChild(txt);
+    td.id = "revoked_at_block_" + event.args.otpHash;
     tr.appendChild(td);
 
     // claimed at block
     td = document.createElement("td");
-    txt = document.createTextNode("-");
-    txt.id = "claim_block_" + event.args.otpHash;
-    td.appendChild(txt);
+    td.id = "claimed_at_block_" + event.args.otpHash;
     tr.appendChild(td);
 
     td = document.createElement("td");
     var btn = document.createElement("input");
-    btn.id = "revoke_" + event.args.otpHash;
+    btn.id = "revoke_btn_" + event.args.otpHash;
     btn.type = "button";
     btn.value = "Revoke";
-    btn.onclick = function() { window.App.revokeRemittance(event.args.otpHash); }
+    btn.onclick = function () { window.App.revokeRemittance(event.args.otpHash); }
     td.appendChild(btn);
     tr.appendChild(td);
 
+    var table = document.getElementById("my_remittances");
     table.appendChild(tr);
   },
 
-  handleRevokeEvent: function (event) {
-    // update revokation block number in the table and hide Revoke button
-    var txt = document.getElementById("revoked_at_" + event.args.otpHash);
-    txt.innerHTML = event.blockNumber;
+  handleEvent: function (event) {
+    // create record in the table, if not yet there
     var btn = document.getElementById("revoke_btn_" + event.args.otpHash);
-    btn.hidden = true;
-  },
+    if (!btn) {
+      window.App.addRemittanceRecord(event);
+      btn = document.getElementById("revoke_btn_" + event.args.otpHash);
+    }
 
-  handleClaimEvent: function (event) {
-    // update claim block number in the table and hide Revoke button
-    var txt = document.getElementById("claimed_at_" + event.args.otpHash);
+    // update block number in corresponding column
+    var txt;
+    var disableRevokeButton = false;
+    if (event.event == "LogRemittance") {
+      txt = document.getElementById("created_at_block_" + event.args.otpHash);
+    } else if (event.event == "LogRevoke") {
+      txt = document.getElementById("revoked_at_block_" + event.args.otpHash);
+      disableRevokeButton = true;
+    } else if (event.event == "LogClaim") {
+      txt = document.getElementById("claimed_at_block_" + event.args.otpHash);
+      disableRevokeButton = true;
+    } else {
+      console.log("unexpected event " + event.event);
+      return;
+    }
+
     txt.innerHTML = event.blockNumber;
-    var btn = document.getElementById("revoke_btn_" + event.args.otpHash);
-    btn.hidden = true;
+    if (disableRevokeButton) {
+      btn.hidden = true;
+    }
   }
 };
 

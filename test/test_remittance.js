@@ -2,8 +2,9 @@ Promise = require("bluebird");
 Promise.promisifyAll(web3.eth, { suffix: "Promise" });
 
 // web3.eth.getTransactionReceiptMined = require("./helpers/getTransactionReceiptMined.js");
-// const expectedExceptionPromise = require("./helpers/expectedExceptionPromise.js");
+const expectedExceptionPromise = require("./helpers/expectedExceptionPromise.js");
 const measure = require("./helpers/measure.js");
+const otp = require("../helpers/otp.js");
 
 var Remittance = artifacts.require("./Remittance.sol");
 
@@ -14,7 +15,8 @@ contract('Remittance', function (accounts) {
   const ALICE = accounts[1];
   const CAROL = accounts[2];
 
-  const OTP_HEX = web3.sha3("blah");
+  const SECRET_HEX = web3.sha3("blah");
+  const BADSECRET_HEX = web3.sha3("no-blah");
 
   describe("mmm... tests...", function () {
     beforeEach("deploy", function () {
@@ -54,7 +56,6 @@ contract('Remittance', function (accounts) {
   describe("main use case", function () {
     var remittance;
     var testAccounts;
-    var otpHash;
 
     before("deploy", function () {
       return Remittance.deployed().then(instance => {
@@ -62,23 +63,24 @@ contract('Remittance', function (accounts) {
         assert.notEqual(remittance.contract.address, 0);
 
         testAccounts = [remittance.contract.address, ALICE, CAROL];
-
-        // otpHash = web3.sha3(web3.toAscii(CAROL) + web3.toAscii(OTP_HEX));
-        otpHash = web3.sha3(OTP_HEX, { encoding: 'hex' });
       })
     });
 
     it("sender can remit positive amount to non-zero shop address", function () {
+      var otpValue = otp.generate(SECRET_HEX, CAROL);
       return measure.measureTx(testAccounts,
-        remittance.remit(otpHash, CAROL, { from: ALICE, value: TEST_AMOUNT }))
+        remittance.remit(otpValue, CAROL, { from: ALICE, value: TEST_AMOUNT }))
         .then(m => {
+          assert.equal(m.status, 1, 'remit failed');
           measure.assertStrs10Equal(m.diff, [TEST_AMOUNT, -m.cost - TEST_AMOUNT, 0]);
           // FIXME: check events
         });
     });
 
-    it.skip("shop cannot claim with an incorrect OTP", function () {
-      assert.fail();
+    it("shop cannot claim with an incorrect OTP", function () {
+      return expectedExceptionPromise(function () {
+        return remittance.claim(BADSECRET_HEX, { from: CAROL, gas: 3000000 })
+      }, 3000000);
     });
 
     it.skip("non-shop cannot claim even with correct OTP", function () {
@@ -87,8 +89,9 @@ contract('Remittance', function (accounts) {
 
     it("shop can claim with correct OTP", function () {
       return measure.measureTx(testAccounts,
-        remittance.claim(OTP_HEX, { from: CAROL }))
+        remittance.claim(SECRET_HEX, { from: CAROL }))
         .then(m => {
+          assert.equal(m.status, 1, 'remit failed');
           measure.assertStrs10Equal(m.diff, [-TEST_AMOUNT, 0, -m.cost + TEST_AMOUNT]);
           // FIXME: check events
         });

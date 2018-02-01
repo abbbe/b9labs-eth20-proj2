@@ -21,7 +21,7 @@ module.exports = {
             var cost = txObj.receipt.gasUsed * tx.gasPrice;
             var diff = before.map((_, i) => after[i].minus(before[i]).toString(10));
             // console.log(before, after, diff);
-            return { cost: cost, before: before, after: after, diff: diff, txObj: txObj, tx: tx };
+            return { cost: cost, before: before, after: after, diff: diff, txObj: txObj, tx: tx, status: txObj.receipt.status };
           })))).catch(reject);
   },
 

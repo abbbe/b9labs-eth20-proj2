@@ -52,10 +52,6 @@ contract('Remittance', function (accounts) {
       assert.fail();
     });
 
-    it.skip("can claim correct amount after remitting twice with same OTP", function () {
-      assert.fail();
-    });
-
     it.skip("can claim correct amounts from different senders remiting with same OTP", function () {
       assert.fail();
     });

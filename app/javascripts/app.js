@@ -17,72 +17,6 @@ function addOtherAccount(addr) {
   otherAccounts.appendChild(entry);
 }
 
-function handleRemittanceEvent(event) {
-  var table = document.getElementById("my_remittances");
-  var tr = document.createElement("tr");
-  var td, txt;
-
-  td = document.createElement("td");
-  txt = document.createTextNode(web3.toChecksumAddress(event.args.recipient));
-  td.appendChild(txt);
-  tr.appendChild(td);
-
-  td = document.createElement("td");
-  txt = document.createTextNode(web3.fromWei(event.args.amount, 'ether'));
-  td.appendChild(txt);
-  tr.appendChild(td);
-
-  // created at block
-  td = document.createElement("td");
-  //creation = document.createElement("a");
-  //creation.href = "https://etherscan.io/tx/" + event.transactionHash;
-  //creation.innerHTML = event.transactionHash;
-  txt = document.createTextNode(event.blockNumber);
-  td.appendChild(txt);
-  tr.appendChild(td);
-
-  // revoked at block
-  td = document.createElement("td");
-  txt = document.createTextNode("-");
-  txt.id = "revoke_block_" + event.args.otpHash;
-  td.appendChild(txt);
-  tr.appendChild(td);
-
-  // claimed at block
-  td = document.createElement("td");
-  txt = document.createTextNode("-");
-  txt.id = "claim_block_" + event.args.otpHash;
-  td.appendChild(txt);
-  tr.appendChild(td);
-
-  td = document.createElement("td");
-  var btn = document.createElement("input");
-  btn.id = "revoke_" + event.args.otpHash;
-  btn.type = "button";
-  btn.value = "Revoke";
-  btn.onclick = revokeRemittance(otpHash);
-  td.appendChild(btn);
-  tr.appendChild(td);
-
-  table.appendChild(tr);
-}
-
-function handleRevokeEvent(event) {
-  // update revokation block number in the table and hide Revoke button
-  var txt = document.getElementById("revoked_at_" + event.args.otpHash);
-  txt.innerHTML = event.blockNumber;
-  var btn = document.getElementById("revoke_btn_" + event.args.otpHash);
-  btn.hidden = true;
-}
-
-function handleClaimEvent(event) {
-  // update claim block number in the table and hide Revoke button
-  var txt = document.getElementById("claimed_at_" + event.args.otpHash);
-  txt.innerHTML = event.blockNumber;
-  var btn = document.getElementById("revoke_btn_" + event.args.otpHash);
-  btn.hidden = true;
-}
-
 window.App = {
   start: function () {
     var self = this;
@@ -133,7 +67,7 @@ window.App = {
           alert('remittance.LogRemittance.watch() has failed');
           return;
         }
-        handleRemittanceEvent(event);
+        self.handleRemittanceEvent(event);
       });
 
       remittance.LogRevoke().watch((err, event) => {
@@ -141,7 +75,7 @@ window.App = {
           alert('remittance.LogRevoke.watch() has failed');
           return;
         }
-        handleRevokeEvent(event);
+        self.handleRevokeEvent(event);
       });
 
       remittance.LogClaim().watch((err, event) => {
@@ -149,9 +83,9 @@ window.App = {
           alert('remittance.LogClaim.watch() has failed');
           return;
         }
-        handleClaimEvent(event);
+        self.handleClaimEvent(event);
       });
-      
+
       self.setStatus('started');
     });
   },
@@ -201,8 +135,74 @@ window.App = {
     });
   },
 
-  revokeRemittance(otpHash) {
+  revokeRemittance: function(otpHash) {
     console.log("boom");
+  },
+
+  handleRemittanceEvent: function (event) {
+    var table = document.getElementById("my_remittances");
+    var tr = document.createElement("tr");
+    var td, txt;
+
+    td = document.createElement("td");
+    txt = document.createTextNode(web3.toChecksumAddress(event.args.recipient));
+    td.appendChild(txt);
+    tr.appendChild(td);
+
+    td = document.createElement("td");
+    txt = document.createTextNode(web3.fromWei(event.args.amount, 'ether'));
+    td.appendChild(txt);
+    tr.appendChild(td);
+
+    // created at block
+    td = document.createElement("td");
+    //creation = document.createElement("a");
+    //creation.href = "https://etherscan.io/tx/" + event.transactionHash;
+    //creation.innerHTML = event.transactionHash;
+    txt = document.createTextNode(event.blockNumber);
+    td.appendChild(txt);
+    tr.appendChild(td);
+
+    // revoked at block
+    td = document.createElement("td");
+    txt = document.createTextNode("-");
+    txt.id = "revoke_block_" + event.args.otpHash;
+    td.appendChild(txt);
+    tr.appendChild(td);
+
+    // claimed at block
+    td = document.createElement("td");
+    txt = document.createTextNode("-");
+    txt.id = "claim_block_" + event.args.otpHash;
+    td.appendChild(txt);
+    tr.appendChild(td);
+
+    td = document.createElement("td");
+    var btn = document.createElement("input");
+    btn.id = "revoke_" + event.args.otpHash;
+    btn.type = "button";
+    btn.value = "Revoke";
+    btn.onclick = function() { window.App.revokeRemittance(event.args.otpHash); }
+    td.appendChild(btn);
+    tr.appendChild(td);
+
+    table.appendChild(tr);
+  },
+
+  handleRevokeEvent: function (event) {
+    // update revokation block number in the table and hide Revoke button
+    var txt = document.getElementById("revoked_at_" + event.args.otpHash);
+    txt.innerHTML = event.blockNumber;
+    var btn = document.getElementById("revoke_btn_" + event.args.otpHash);
+    btn.hidden = true;
+  },
+
+  handleClaimEvent: function (event) {
+    // update claim block number in the table and hide Revoke button
+    var txt = document.getElementById("claimed_at_" + event.args.otpHash);
+    txt.innerHTML = event.blockNumber;
+    var btn = document.getElementById("revoke_btn_" + event.args.otpHash);
+    btn.hidden = true;
   }
 };
 

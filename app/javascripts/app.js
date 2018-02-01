@@ -10,6 +10,13 @@ var Remittance = contract(remittance_artifacts);
 var remittance;
 var account;
 
+function addOtherAccount(addr) {
+  var otherAccounts = document.getElementById("other_accounts");
+  var entry = document.createElement('span');
+  entry.innerHTML = " " + addr;
+  otherAccounts.appendChild(entry);
+}
+
 function addRemittance() {
   var table = document.getElementById("my_remittances");
   var tr = document.createElement("tr");
@@ -52,7 +59,7 @@ function addRemittance() {
   td.appendChild(input);
   tr.appendChild(td);
 
-  table.appendChild(tr);  
+  table.appendChild(tr);
 }
 
 window.App = {
@@ -82,6 +89,10 @@ window.App = {
         web3.eth.getBalancePromise(account).then(balance => {
           document.getElementById("account_balance").innerHTML = balance;
         });
+
+        web3.eth.getAccounts(function (error, accounts) {
+          accounts.slice(1).forEach(acc => addOtherAccount(acc));
+        });
       } else {
         document.getElementById("account_address").innerHTML = "N/A";
         document.getElementById("account_balance").innerHTML = "N/A";
@@ -107,12 +118,12 @@ window.App = {
     status.innerHTML = message;
   },
 
-  toggleRemittanceView: function() {
+  toggleRemittanceView: function () {
     document.getElementById("remittance_view").hidden = false;
     document.getElementById("claim_view").hidden = true;
   },
 
-  toggleClaimView: function() {
+  toggleClaimView: function () {
     document.getElementById("remittance_view").hidden = true;
     document.getElementById("claim_view").hidden = false;
   }

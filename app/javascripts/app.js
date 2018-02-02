@@ -82,12 +82,13 @@ window.App = {
     }).then(owner => {
       document.getElementById("owner_address").innerHTML = web3.toChecksumAddress(owner);
 
+      // events for sender
       remittance.LogRemittance({ sender: account }, { fromBlock: 0 }).watch((err, event) => {
         if (err) {
           alert('remittance.LogRemittance.watch() has failed');
           return;
         }
-        self.handleEvent(event);
+        self.handleSenderEvent(event);
       });
 
       remittance.LogRevoke({ sender: account }, { fromBlock: 0 }).watch((err, event) => {
@@ -95,7 +96,7 @@ window.App = {
           alert('remittance.LogRevoke.watch() has failed');
           return;
         }
-        self.handleEvent(event);
+        self.handleSenderEvent(event);
       });
 
       remittance.LogClaim({ sender: account }, { fromBlock: 0 }).watch((err, event) => {
@@ -103,7 +104,32 @@ window.App = {
           alert('remittance.LogClaim.watch() has failed');
           return;
         }
-        self.handleEvent(event);
+        self.handleSenderEvent(event);
+      });
+
+      // events for receiver
+      remittance.LogRemittance({ receiver: account }, { fromBlock: 0 }).watch((err, event) => {
+        if (err) {
+          alert('remittance.LogRemittance.watch() has failed');
+          return;
+        }
+        self.handleReceiverEvent(event);
+      });
+
+      remittance.LogRevoke({ receiver: account }, { fromBlock: 0 }).watch((err, event) => {
+        if (err) {
+          alert('remittance.LogRevoke.watch() has failed');
+          return;
+        }
+        self.handleReceiverEvent(event);
+      });
+
+      remittance.LogClaim({ receiver: account }, { fromBlock: 0 }).watch((err, event) => {
+        if (err) {
+          alert('remittance.LogClaim.watch() has failed');
+          return;
+        }
+        self.handleReceiverEvent(event);
       });
 
       self.setStatus('started');
@@ -215,7 +241,7 @@ window.App = {
     table.appendChild(tr);
   },
 
-  handleEvent: function (event) {
+  handleSenderEvent: function (event) {
     // create record in the table, if not yet there
     var btn = document.getElementById("revoke_btn_" + event.args.otpHash);
     if (!btn) {
@@ -243,7 +269,12 @@ window.App = {
     if (disableRevokeButton) {
       btn.hidden = true;
     }
+  },
+
+  handleReceiverEvent: function (event) {
+    // TODO
   }
+
 };
 
 window.addEventListener('load', function () {

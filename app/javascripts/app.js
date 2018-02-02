@@ -10,8 +10,13 @@ var Remittance = contract(remittance_artifacts);
 var remittance;
 var account;
 
-function generateOtp(otp) {
-  return web3.sha3(otp);
+function secretToOtp(secret) {
+  return web3.sha3(secret);
+}
+
+function secretToOtpHash(secret) {
+  var otp = secretToOtp(secret);
+  return web3.sha3(otp, { encoding: 'hex' });
 }
 
 function addOtherAccount(addr) {
@@ -156,8 +161,8 @@ window.App = {
     var recipient = document.getElementById("new_remittance_recipient").value;
     var amountEth = parseFloat(document.getElementById("new_remittance_amount").value);
     var amount = web3.toWei(amountEth, 'ether');
-    var otp = document.getElementById("new_remittance_otp").value;
-    var otpHash = generateOtp(otp);
+    var secret = document.getElementById("new_remittance_otp").value;
+    var otpHash = secretToOtpHash(secret);
 
     if (!recipient.length || !web3.isChecksumAddress(recipient)) {
       alert("Invalid recipient address (checksum is mandatory)");
@@ -169,7 +174,7 @@ window.App = {
       return;
     }
 
-    if (otp.length < 4) {
+    if (secret.length < 4) {
       alert("Secret must be at least 4 characters long");
       return;
     }
@@ -188,6 +193,17 @@ window.App = {
       self.setStatus("revoke() transaction was mined: " + txHash);
     }).catch(error => {
       self.setStatus("failed to submit revoke() transaction: " + error);
+    });
+  },
+
+  claimRemittance: function () {
+    var self = this;
+    var secret = document.getElementById("claim__otp").value;
+    var otp = secretToOtp(secret);
+    remittance.claim.sendTransaction(otp, { from: account }).then(txHash => {
+      self.setStatus("claim() transaction was mined: " + txHash);
+    }).catch(error => {
+      self.setStatus("failed to submit claim() transaction: " + error);
     });
   },
 
@@ -283,6 +299,7 @@ window.App = {
     btn.id = "claim__btn_" + event.args.otpHash;
     btn.type = "button";
     btn.value = "Claim";
+    btn.hidden = true;
     btn.onclick = function () { window.App.claimRemittance(event.args.otpHash); }
     td.appendChild(btn);
     tr.appendChild(td);

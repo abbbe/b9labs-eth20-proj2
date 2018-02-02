@@ -8,7 +8,6 @@ const otp = require("../helpers/otp.js");
 
 var Remittance = artifacts.require("./Remittance.sol");
 
-
 contract('Remittance', function (accounts) {
   const TEST_AMOUNT = 1000000;
 
@@ -30,21 +29,21 @@ contract('Remittance', function (accounts) {
 
     it("sender cannot remit zero amount", function () {
       return expectedExceptionPromise(function () {
-        return remittance.remit(otp.generate(SECRET_HEX, CAROL), CAROL, { from: ALICE, gas: 3000000 })
+        return remittance.remit(otp.secretToOtpHash(SECRET_HEX, CAROL), CAROL, { from: ALICE, gas: 3000000 })
       }, 3000000);
     });
 
     it("sender cannot remit to zero recipient address", function () {
       return expectedExceptionPromise(function () {
-        return remittance.remit(otp.generate(SECRET_HEX, CAROL), 0, { from: ALICE, value: 1, gas: 3000000 })
+        return remittance.remit(otp.secretToOtpHash(SECRET_HEX, CAROL), 0, { from: ALICE, value: 1, gas: 3000000 })
       }, 3000000);
     });
 
     it("sender cannot reuse OTP", function () {
-      return remittance.remit(otp.generate(SECRET_HEX, CAROL), CAROL, { from: ALICE, value: 1 })
+      return remittance.remit(otp.secretToOtpHash(SECRET_HEX, CAROL), CAROL, { from: ALICE, value: 1 })
         .then(txObj =>
           expectedExceptionPromise(function () {
-            return remittance.remit(otp.generate(SECRET_HEX, CAROL), CAROL, { from: ALICE, value: 1, gas: 3000000 })
+            return remittance.remit(otp.secretToOtpHash(SECRET_HEX, CAROL), CAROL, { from: ALICE, value: 1, gas: 3000000 })
           }, 3000000));
     });
 
@@ -92,7 +91,7 @@ contract('Remittance', function (accounts) {
    */
   describe("revoke:", function () {
     var remittance;
-    var otpHash = otp.generate(SECRET_HEX, CAROL);
+    var otpHash = otp.secretToOtpHash(SECRET_HEX, CAROL);
 
     before("deploy+remit", function () {
       return Remittance.new().then(instance => {
@@ -148,7 +147,7 @@ contract('Remittance', function (accounts) {
     });
 
     it("sender can remit positive amount to non-zero recipient address", function () {
-      var otpValue = otp.generate(SECRET_HEX, CAROL);
+      var otpValue = otp.secretToOtpHash(SECRET_HEX, CAROL);
       return measure.measureTx(testAccounts,
         remittance.remit(otpValue, CAROL, { from: ALICE, value: TEST_AMOUNT }))
         .then(m => {
@@ -160,19 +159,19 @@ contract('Remittance', function (accounts) {
 
     it("recipient cannot claim with an incorrect OTP", function () {
       return expectedExceptionPromise(function () {
-        return remittance.claim(BADSECRET_HEX, { from: CAROL, gas: 3000000 })
+        return remittance.claim(otp.secretToOtp(BADSECRET_HEX), { from: CAROL, gas: 3000000 })
       }, 3000000);
     });
 
     it("non-recipient cannot claim even with correct OTP", function () {
       return expectedExceptionPromise(function () {
-        return remittance.claim(SECRET_HEX, { from: MALORY, gas: 3000000 })
+        return remittance.claim(otp.secretToOtp(SECRET_HEX, CAROL), { from: MALORY, gas: 3000000 })
       }, 3000000);
     });
 
     it("recipient can claim with correct OTP", function () {
       return measure.measureTx(testAccounts,
-        remittance.claim(SECRET_HEX, { from: CAROL }))
+        remittance.claim(otp.secretToOtp(SECRET_HEX, CAROL), { from: CAROL }))
         .then(m => {
           assert.equal(m.status, 1, 'remit failed');
           measure.assertStrs10Equal(m.diff, [-TEST_AMOUNT, 0, -m.cost + TEST_AMOUNT]);
@@ -182,13 +181,13 @@ contract('Remittance', function (accounts) {
 
     it("recipient cannot claim twice", function () {
       return expectedExceptionPromise(function () {
-        return remittance.claim(SECRET_HEX, { from: CAROL, gas: 3000000 })
+        return remittance.claim(otp.secretToOtp(SECRET_HEX, CAROL), { from: CAROL, gas: 3000000 })
       }, 3000000);
     });
 
     it("sender cannot revoke claimed remittance", function () {
       return expectedExceptionPromise(function () {
-        return remittance.revoke(otp.generate(SECRET_HEX, CAROL), { from: ALICE, gas: 3000000 })
+        return remittance.revoke(otp.secretToOtpHash(SECRET_HEX, CAROL), { from: ALICE, gas: 3000000 })
       }, 3000000);
     });
   });

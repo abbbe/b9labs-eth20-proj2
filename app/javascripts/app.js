@@ -4,20 +4,12 @@ import { default as Web3 } from 'web3';
 import { default as contract } from 'truffle-contract'
 
 const Promise = require("bluebird");
+const otp = require("../../helpers/otp.js");
 
 import remittance_artifacts from '../../build/contracts/Remittance.json'
 var Remittance = contract(remittance_artifacts);
 var remittance;
 var account;
-
-function secretToOtp(secret) {
-  return web3.sha3(secret);
-}
-
-function secretToOtpHash(secret) {
-  var otp = secretToOtp(secret);
-  return web3.sha3(otp, { encoding: 'hex' });
-}
 
 function addOtherAccount(addr) {
   var otherAccounts = document.getElementById("other_accounts");
@@ -162,7 +154,10 @@ window.App = {
     var amountEth = parseFloat(document.getElementById("new_remittance_amount").value);
     var amount = web3.toWei(amountEth, 'ether');
     var secret = document.getElementById("new_remittance_otp").value;
-    var otpHash = secretToOtpHash(secret);
+    var otpHash = otp.secretToOtpHash(secret, recipient);
+    // console.log("secret", secret); // DEBUG
+    // console.log("otp", otp.secretToOtp(secret, recipient)); // DEBUG
+    // console.log("otpHash", otpHash); // DEBUG
 
     if (!recipient.length || !web3.isChecksumAddress(recipient)) {
       alert("Invalid recipient address (checksum is mandatory)");
@@ -198,9 +193,12 @@ window.App = {
 
   claimRemittance: function () {
     var self = this;
-    var secret = document.getElementById("claim__otp").value;
-    var otp = secretToOtp(secret);
-    remittance.claim.sendTransaction(otp, { from: account }).then(txHash => {
+    var secret = document.getElementById("claim_otp").value;
+    var _otp = otp.secretToOtp(secret, account);
+    // console.log("secret", secret); // DEBUG
+    // console.log("otp", _otp); // DEBUG
+    // console.log("otpHash", otp.secretToOtpHash(secret, account)); // DEBUG
+    remittance.claim.sendTransaction(_otp, { from: account }).then(txHash => {
       self.setStatus("claim() transaction was mined: " + txHash);
     }).catch(error => {
       self.setStatus("failed to submit claim() transaction: " + error);

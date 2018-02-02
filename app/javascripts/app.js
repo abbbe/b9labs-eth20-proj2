@@ -201,7 +201,7 @@ window.App = {
     td.appendChild(txt);
     tr.appendChild(td);
 
-    // amopunt
+    // amount
     td = document.createElement("td");
     txt = document.createTextNode(web3.fromWei(event.args.amount, 'ether'));
     td.appendChild(txt);
@@ -215,17 +215,17 @@ window.App = {
 
     // created at block
     td = document.createElement("td");
-    td.id = "created_at_block_" + event.args.otpHash;
+    td.id = "remit__created_at_block_" + event.args.otpHash;
     tr.appendChild(td);
 
     // revoked at block
     td = document.createElement("td");
-    td.id = "revoked_at_block_" + event.args.otpHash;
+    td.id = "remit__revoked_at_block_" + event.args.otpHash;
     tr.appendChild(td);
 
     // claimed at block
     td = document.createElement("td");
-    td.id = "claimed_at_block_" + event.args.otpHash;
+    td.id = "remit__claimed_at_block_" + event.args.otpHash;
     tr.appendChild(td);
 
     td = document.createElement("td");
@@ -241,6 +241,56 @@ window.App = {
     table.appendChild(tr);
   },
 
+  addClaimRecord: function (event) {
+    var tr = document.createElement("tr");
+    var td, txt;
+
+    // sender
+    td = document.createElement("td");
+    txt = document.createTextNode(web3.toChecksumAddress(event.args.sender));
+    td.appendChild(txt);
+    tr.appendChild(td);
+
+    // amount
+    td = document.createElement("td");
+    txt = document.createTextNode(web3.fromWei(event.args.amount, 'ether'));
+    td.appendChild(txt);
+    tr.appendChild(td);
+
+    // otpHash
+    td = document.createElement("td");
+    txt = document.createTextNode(event.args.otpHash.slice(2, 10));
+    td.appendChild(txt);
+    tr.appendChild(td);
+
+    // created at block
+    td = document.createElement("td");
+    td.id = "claim__created_at_block_" + event.args.otpHash;
+    tr.appendChild(td);
+
+    // revoked at block
+    td = document.createElement("td");
+    td.id = "claim__revoked_at_block_" + event.args.otpHash;
+    tr.appendChild(td);
+
+    // claimed at block
+    td = document.createElement("td");
+    td.id = "claim__claimed_at_block_" + event.args.otpHash;
+    tr.appendChild(td);
+
+    td = document.createElement("td");
+    var btn = document.createElement("input");
+    btn.id = "claim__btn_" + event.args.otpHash;
+    btn.type = "button";
+    btn.value = "Claim";
+    btn.onclick = function () { window.App.claimRemittance(event.args.otpHash); }
+    td.appendChild(btn);
+    tr.appendChild(td);
+
+    var table = document.getElementById("my_claims");
+    table.appendChild(tr);
+  },
+
   handleSenderEvent: function (event) {
     // create record in the table, if not yet there
     var btn = document.getElementById("revoke_btn_" + event.args.otpHash);
@@ -253,12 +303,12 @@ window.App = {
     var txt;
     var disableRevokeButton = false;
     if (event.event == "LogRemittance") {
-      txt = document.getElementById("created_at_block_" + event.args.otpHash);
+      txt = document.getElementById("remit__created_at_block_" + event.args.otpHash);
     } else if (event.event == "LogRevoke") {
-      txt = document.getElementById("revoked_at_block_" + event.args.otpHash);
+      txt = document.getElementById("remit__revoked_at_block_" + event.args.otpHash);
       disableRevokeButton = true;
     } else if (event.event == "LogClaim") {
-      txt = document.getElementById("claimed_at_block_" + event.args.otpHash);
+      txt = document.getElementById("remit__claimed_at_block_" + event.args.otpHash);
       disableRevokeButton = true;
     } else {
       console.log("unexpected event " + event.event);
@@ -272,7 +322,33 @@ window.App = {
   },
 
   handleReceiverEvent: function (event) {
-    // TODO
+    // create record in the table, if not yet there
+    var btn = document.getElementById("claim__btn_" + event.args.otpHash);
+    if (!btn) {
+      window.App.addClaimRecord(event);
+      btn = document.getElementById("claim__btn_" + event.args.otpHash);
+    }
+
+    // update block number in corresponding column
+    var txt;
+    var disableClaimButton = false;
+    if (event.event == "LogRemittance") {
+      txt = document.getElementById("claim__created_at_block_" + event.args.otpHash);
+    } else if (event.event == "LogRevoke") {
+      txt = document.getElementById("claim__revoked_at_block_" + event.args.otpHash);
+      disableClaimButton = true;
+    } else if (event.event == "LogClaim") {
+      txt = document.getElementById("claim__claimed_at_block_" + event.args.otpHash);
+      disableClaimButton = true;
+    } else {
+      console.log("unexpected event " + event.event);
+      return;
+    }
+
+    txt.innerHTML = event.blockNumber;
+    if (disableClaimButton) {
+      btn.hidden = true;
+    }
   }
 
 };

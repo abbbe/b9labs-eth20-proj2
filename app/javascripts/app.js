@@ -108,7 +108,7 @@ window.App = {
       });
 
       // events for receiver
-      remittance.LogRemittance({ receiver: account }, { fromBlock: 0 }).watch((err, event) => {
+      remittance.LogRemittance({ recipient: account }, { fromBlock: 0 }).watch((err, event) => {
         if (err) {
           alert('remittance.LogRemittance.watch() has failed');
           return;
@@ -116,7 +116,7 @@ window.App = {
         self.handleReceiverEvent(event);
       });
 
-      remittance.LogRevoke({ receiver: account }, { fromBlock: 0 }).watch((err, event) => {
+      remittance.LogRevoke({ recipient: account }, { fromBlock: 0 }).watch((err, event) => {
         if (err) {
           alert('remittance.LogRevoke.watch() has failed');
           return;
@@ -124,7 +124,7 @@ window.App = {
         self.handleReceiverEvent(event);
       });
 
-      remittance.LogClaim({ receiver: account }, { fromBlock: 0 }).watch((err, event) => {
+      remittance.LogClaim({ recipient: account }, { fromBlock: 0 }).watch((err, event) => {
         if (err) {
           alert('remittance.LogClaim.watch() has failed');
           return;

@@ -91,10 +91,6 @@ contract('Remittance', function (accounts) {
         e => assert.isAtLeast(e.message.indexOf("Cannot send value to non-payable function"), 0)
       );
     });
-
-    it.skip("can claim correct amounts from different senders remiting with same OTP", function () {
-      assert.fail();
-    });
   });
 
   /*

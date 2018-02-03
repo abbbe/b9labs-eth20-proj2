@@ -18,6 +18,13 @@ contract('Remittance', function (accounts) {
   const SECRET_HEX = web3.sha3("blah");
   const BADSECRET_HEX = web3.sha3("no-blah");
 
+  it("cannot send funds to constructor", function () {
+    return Remittance.new({ value: 1 }).then(
+      txObj => assert.fail('should not have worked'),
+      e => assert.isAtLeast(e.message.indexOf("Cannot send value to non-payable constructor"), 0)
+    );
+  });
+
   describe("deployed:", function () {
     var remittance;
 
@@ -78,6 +85,13 @@ contract('Remittance', function (accounts) {
       );
     });
 
+    it("cannot send funds with kill()", function () {
+      return remittance.kill({ value: 1 }).then(
+        txObj => assert.fail('should not have worked'),
+        e => assert.isAtLeast(e.message.indexOf("Cannot send value to non-payable function"), 0)
+      );
+    });
+
     it.skip("can claim correct amounts from different senders remiting with same OTP", function () {
       assert.fail();
     });
@@ -102,6 +116,13 @@ contract('Remittance', function (accounts) {
             assert.equal(txObj1.receipt.status, 1, 'remit failed');
           })
       })
+    });
+
+    it("cannot send funds with revoke()", function () {
+      return remittance.revoke(otpHash, { from: ALICE, value: 1 }).then(
+        txObj => assert.fail('should not have worked'),
+        e => assert.isAtLeast(e.message.indexOf("Cannot send value to non-payable function"), 0)
+      );
     });
 
     it("sender can revoke an unclaimed remittance", function () {
@@ -167,6 +188,13 @@ contract('Remittance', function (accounts) {
       return expectedExceptionPromise(function () {
         return remittance.claim(otp.secretToOtp(SECRET_HEX, CAROL), { from: MALORY, gas: 3000000 })
       }, 3000000);
+    });
+
+    it("cannot send funds with claim()", function () {
+      return remittance.claim(otp.secretToOtp(SECRET_HEX, CAROL), { from: CAROL, value: 1 }).then(
+        () => assert.fail('should not have worked'),
+        e => assert.isAtLeast(e.message.indexOf("Cannot send value to non-payable function"), 0)
+      );
     });
 
     it("recipient can claim with correct OTP", function () {

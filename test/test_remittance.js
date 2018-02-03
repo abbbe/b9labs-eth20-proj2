@@ -64,11 +64,11 @@ contract('Remittance', function (accounts) {
       return remittance.kill().then(
         txObj1 => {
           assert.equal(txObj1.receipt.status, 1, 'first kill failed');
-          return remittance.kill().then(
-            txObj => assert.equal(txObj.receipt.status, 0, 'should not have worked'),
-            e => assert.isAtLeast(e.message.indexOf("Exception while processing transaction: revert"), 0)
-          )
-        });
+          return remittance.kill();
+        }).then(
+        txObj => assert.equal(txObj.receipt.status, 0, 'should not have worked'),
+        e => assert.isAtLeast(e.message.indexOf("Exception while processing transaction: revert"), 0)
+        );
     });
 
     it("contract non-owner cannot kill", function () {

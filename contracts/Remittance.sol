@@ -39,7 +39,7 @@ contract Remittance is OwnableKillable {
     notKilled()
     public
   {
-    bytes32 otpHash = keccak256(otp);
+    bytes32 otpHash = keccak256(otp, msg.sender);
 
     // only recipient can claim
     address recipient = remittances[otpHash].recipient;

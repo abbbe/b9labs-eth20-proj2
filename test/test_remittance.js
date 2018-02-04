@@ -142,7 +142,7 @@ contract('Remittance', function (accounts) {
 
     it("recipient cannot claim revoked remittance", function () {
       return expectedExceptionPromise(function () {
-        return remittance.claim(SECRET_HEX, { from: CAROL, gas: 3000000 }) // FIXME: must be otpValue!
+        return remittance.claim(otp.secretToOtp(SECRET_HEX, CAROL), { from: CAROL, gas: 3000000 })
       }, 3000000);
     });
   });
@@ -222,7 +222,7 @@ contract('Remittance', function (accounts) {
 
     it("recipient cannot claim twice", function () {
       return expectedExceptionPromise(function () {
-        return remittance.claim(otp.secretToOtp(SECRET_HEX, CAROL), { from: CAROL, gas: 3000000 }) // FIXME: should be hash
+        return remittance.claim(otp.secretToOtp(SECRET_HEX, CAROL), { from: CAROL, gas: 3000000 })
       }, 3000000);
     });
 

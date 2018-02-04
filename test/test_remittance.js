@@ -55,10 +55,9 @@ contract('Remittance', function (accounts) {
     });
 
     it("cannot just send funds to the contract", function () {
-      return remittance.sendTransaction({ value: 1 }).then(
-        () => assert.fail('should not have worked'),
-        e => assert.isAtLeast(e.message.indexOf("VM Exception while processing transaction: revert"), 0)
-      );
+      return expectedExceptionPromise(function () {
+        return remittance.sendTransaction({ value: 1, gas: 3000000 })
+      }, 3000000);
     });
 
     it("contract owner can kill", function () {
@@ -68,21 +67,19 @@ contract('Remittance', function (accounts) {
     });
 
     it("cannot kill killed contract", function () {
-      return remittance.kill().then(
+      return remittance.kill().then( // first kill
         txObj1 => {
           assert.equal(txObj1.receipt.status, 1, 'first kill failed');
-          return remittance.kill();
-        }).then(
-        txObj => assert.equal(txObj.receipt.status, 0, 'should not have worked'),
-        e => assert.isAtLeast(e.message.indexOf("Exception while processing transaction: revert"), 0)
-        );
+          return expectedExceptionPromise(function () {
+            return remittance.kill({ gas: 3000000 }); // second kill
+          }, 3000000);
+        });
     });
 
     it("contract non-owner cannot kill", function () {
-      return remittance.kill({ from: ALICE }).then(
-        txObj => assert.equal(txObj.receipt.status, 0, 'should not have worked'),
-        e => assert.isAtLeast(e.message.indexOf("Exception while processing transaction: revert"), 0)
-      );
+      return expectedExceptionPromise(function () {
+        return remittance.kill({ from: ALICE, gas: 3000000 });
+      }, 3000000);
     });
 
     it("cannot send funds with kill()", function () {

@@ -121,10 +121,16 @@ contract('Remittance', function (accounts) {
       );
     });
 
-    it("sender can revoke an unclaimed remittance", function () {
-      return remittance.revoke(otpHash, { from: ALICE }).then(txObj2 => {
-        // FIXME check logs
-        assert.equal(txObj2.receipt.status, 1, 'revoke failed');
+    it("sender can revoke an unclaimed remittance, LogRevoke fires", function () {
+      return remittance.revoke(otpHash, { from: ALICE }).then(txObj => {
+        assert.equal(txObj.receipt.status, 1, 'revoke failed');
+        // event LogRevoke(address indexed sender, address indexed recipient, uint256 amount, bytes32 otpHash);
+        assert.strictEqual(txObj.logs.length, 1);
+        assert.strictEqual(txObj.logs[0].event, "LogRevoke");
+        assert.strictEqual(txObj.logs[0].args.sender, ALICE);
+        assert.strictEqual(txObj.logs[0].args.recipient, CAROL);
+        assert.strictEqual(txObj.logs[0].args.amount.toString(10), TEST_AMOUNT.toString(10));
+        assert.strictEqual(txObj.logs[0].args.otpHash, otpHash);
       });
     });
 
@@ -136,7 +142,7 @@ contract('Remittance', function (accounts) {
 
     it("recipient cannot claim revoked remittance", function () {
       return expectedExceptionPromise(function () {
-        return remittance.claim(SECRET_HEX, { from: CAROL, gas: 3000000 })
+        return remittance.claim(SECRET_HEX, { from: CAROL, gas: 3000000 }) // FIXME: must be otpValue!
       }, 3000000);
     });
   });
@@ -164,13 +170,18 @@ contract('Remittance', function (accounts) {
     });
 
     it("sender can remit positive amount to non-zero recipient address", function () {
-      var otpValue = otp.secretToOtpHash(SECRET_HEX, CAROL);
+      var otpHash = otp.secretToOtpHash(SECRET_HEX, CAROL);
       return measure.measureTx(testAccounts,
-        remittance.remit(otpValue, CAROL, { from: ALICE, value: TEST_AMOUNT }))
+        remittance.remit(otpHash, CAROL, { from: ALICE, value: TEST_AMOUNT }))
         .then(m => {
           assert.equal(m.status, 1, 'remit failed');
           measure.assertStrs10Equal(m.diff, [TEST_AMOUNT, -m.cost - TEST_AMOUNT, 0]);
-          // FIXME: check events
+          assert.strictEqual(m.txObj.logs.length, 1);
+          assert.strictEqual(m.txObj.logs[0].event, "LogRemittance");
+          assert.strictEqual(m.txObj.logs[0].args.sender, ALICE);
+          assert.strictEqual(m.txObj.logs[0].args.recipient, CAROL);
+          assert.strictEqual(m.txObj.logs[0].args.amount.toString(10), TEST_AMOUNT.toString(10));
+          assert.strictEqual(m.txObj.logs[0].args.otpHash, otpHash);
         });
     });
 
@@ -193,19 +204,25 @@ contract('Remittance', function (accounts) {
       );
     });
 
-    it("recipient can claim with correct OTP", function () {
+    it("recipient can claim with correct OTP, LogClaim fires", function () {
+      var otpValue = otp.secretToOtp(SECRET_HEX, CAROL);
+      var otpHash = otp.secretToOtpHash(SECRET_HEX, CAROL);
       return measure.measureTx(testAccounts,
-        remittance.claim(otp.secretToOtp(SECRET_HEX, CAROL), { from: CAROL }))
+        remittance.claim(otpValue, { from: CAROL }))
         .then(m => {
           assert.equal(m.status, 1, 'remit failed');
+          assert.strictEqual(m.txObj.logs[0].event, "LogClaim");
+          assert.strictEqual(m.txObj.logs[0].args.sender, ALICE);
+          assert.strictEqual(m.txObj.logs[0].args.recipient, CAROL);
+          assert.strictEqual(m.txObj.logs[0].args.amount.toString(10), TEST_AMOUNT.toString(10));
+          assert.strictEqual(m.txObj.logs[0].args.otpHash, otpHash, 'otpHash mismatch');
           measure.assertStrs10Equal(m.diff, [-TEST_AMOUNT, 0, -m.cost + TEST_AMOUNT]);
-          // FIXME: check events
         });
     });
 
     it("recipient cannot claim twice", function () {
       return expectedExceptionPromise(function () {
-        return remittance.claim(otp.secretToOtp(SECRET_HEX, CAROL), { from: CAROL, gas: 3000000 })
+        return remittance.claim(otp.secretToOtp(SECRET_HEX, CAROL), { from: CAROL, gas: 3000000 }) // FIXME: should be hash
       }, 3000000);
     });
 
